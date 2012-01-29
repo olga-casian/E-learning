@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>wnd_main</class>
+ <widget class="QMainWindow" name="wnd_main">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>700</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>E-learning</string>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="whatsThis">
+   <string/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <item>
+     <layout class="QVBoxLayout" name="vlt_all">
+      <item>
+       <layout class="QHBoxLayout" name="hlt_canvas_session_formula">
+        <item>
+         <widget class="QPushButton" name="btn_canvas_session">
+          <property name="text">
+           <string>Canvas session</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="default">
+           <bool>false</bool>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="vlt_formula">
+          <item>
+           <widget class="QLabel" name="lab_insert_formula">
+            <property name="text">
+             <string>Insert formula:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="eln_insert_formula"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_insert_formula">
+          <property name="text">
+           <string>Insert</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hlt_canvas_menu_buttons">
+        <item>
+         <layout class="QVBoxLayout" name="vlt_menu_buttons">
+          <item>
+           <widget class="QPushButton" name="btn_color">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Color</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_size">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_clear">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_add">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Add</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_undo">
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Undo</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="vsr_menu_buttons">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGraphicsView" name="graphicsView"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hlt_audio_save">
+        <item>
+         <widget class="QPushButton" name="btn_audio_session">
+          <property name="text">
+           <string>Audio session</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_mute">
+          <property name="text">
+           <string>Mute</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="vsr_audio_save">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>700</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="men_options">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="act_color"/>
+    <addaction name="act_size"/>
+    <addaction name="act_clear"/>
+    <addaction name="act_add"/>
+    <addaction name="act_undo"/>
+    <addaction name="separator"/>
+    <addaction name="act_settings"/>
+   </widget>
+   <widget class="QMenu" name="men_help">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="men_file">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="men_save_as">
+     <property name="title">
+      <string>Save As</string>
+     </property>
+     <addaction name="act_jpg"/>
+     <addaction name="act_bmp"/>
+    </widget>
+    <addaction name="men_save_as"/>
+   </widget>
+   <addaction name="men_file"/>
+   <addaction name="men_options"/>
+   <addaction name="men_help"/>
+  </widget>
+  <widget class="QStatusBar" name="stb_main"/>
+  <action name="act_color">
+   <property name="text">
+    <string>Color</string>
+   </property>
+   <property name="shortcut">
+    <string>C</string>
+   </property>
+  </action>
+  <action name="act_size">
+   <property name="text">
+    <string>Size</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
+   </property>
+  </action>
+  <action name="act_add">
+   <property name="text">
+    <string>Add</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="act_undo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>U</string>
+   </property>
+  </action>
+  <action name="act_settings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
+   </property>
+  </action>
+  <action name="act_clear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
+   </property>
+  </action>
+  <action name="act_jpg">
+   <property name="text">
+    <string>.jpg</string>
+   </property>
+  </action>
+  <action name="act_bmp">
+   <property name="text">
+    <string>.bmp</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>btn_canvas_session</tabstop>
+  <tabstop>eln_insert_formula</tabstop>
+  <tabstop>btn_insert_formula</tabstop>
+  <tabstop>btn_color</tabstop>
+  <tabstop>btn_size</tabstop>
+  <tabstop>btn_clear</tabstop>
+  <tabstop>btn_add</tabstop>
+  <tabstop>btn_undo</tabstop>
+  <tabstop>btn_audio_session</tabstop>
+  <tabstop>btn_mute</tabstop>
+  <tabstop>graphicsView</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

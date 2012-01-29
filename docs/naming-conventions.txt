@@ -1,0 +1,31 @@
+NAMING CONVENTIONS
+
+Push Button -> btn
+Radio Button -> rad
+Tab Widget -> tab
+Label -> lab
+Vertical Spacer -> vsp
+Horizontal Spacer -> hsp
+Command Link Button -> clb
+Line Edit -> eln
+Text Edit -> etx
+Time Edit -> etm
+Plain Text Edit -> ept
+Check Box -> chb
+Tree View -> tre
+List View -> lst
+Combo Box -> cmb
+Stacked Widget -> stw
+Spin Box -> spb
+statusbar -> stb
+menu -> men
+action -> act
+
+
+verticalLayout -> vlt
+horizontalLayout -> hlt
+horizontalSpacer -> hsr
+verticalSpacer -> vsr
+
+
+MainWindow -> main_wnd
