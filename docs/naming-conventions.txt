@@ -20,6 +20,9 @@ Spin Box -> spb
 statusbar -> stb
 menu -> men
 action -> act
+menubar -> mbr
+separator -> sep
+textBrowser -> tbr
 
 
 verticalLayout -> vlt
@@ -29,3 +32,4 @@ verticalSpacer -> vsr
 
 
 MainWindow -> main_wnd
+

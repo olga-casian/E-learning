@@ -8,6 +8,8 @@ sip.setapi('QVariant', 2)
 import sys
 from PyQt4 import QtCore, QtGui, uic
 
+import resource.res
+
 
 class ScribbleArea(QtGui.QWidget):
     """
@@ -23,7 +25,11 @@ class ScribbleArea(QtGui.QWidget):
        
         self.myPenWidth = 2
         self.myPenColor = QtGui.QColor(0, 85, 255) #QtCore.Qt.blue
-        
+        """
+        self.maxRect = QtCore.QRect(0,0,0,0)
+        self.maxX = 0
+        self.maxY = 0
+        """
         imageSize = QtCore.QSize()
         self.image = QtGui.QImage(imageSize, QtGui.QImage.Format_RGB32)
         self.lastPoint = QtCore.QPoint()
@@ -52,6 +58,14 @@ class ScribbleArea(QtGui.QWidget):
     def mouseMoveEvent(self, event):
         if (event.buttons() & QtCore.Qt.LeftButton) and self.scribbling:
             self.drawLineTo(event.pos())
+            """
+            if event.x() > self.maxX:
+			    self.maxX = event.x()
+            if event.y() > self.maxY:
+                self.maxY = event.y()               
+            self.maxRect.setRect(0, 0, self.maxX, self.maxY)
+            print 'max: ', self.maxX, self.maxY, self.maxRect
+            """
             print "event.pos() = ", event.x(), " ", event.y(), "-", \
 				self.myPenWidth, "-", \
 				self.myPenColor.red(), " ", \
@@ -79,6 +93,7 @@ class ScribbleArea(QtGui.QWidget):
         newImage.fill(QtGui.qRgb(255, 255, 255))
         painter = QtGui.QPainter(newImage)
         painter.drawImage(QtCore.QPoint(0, 0), image)
+        #painter.drawImage(self.maxRect, image)
         #painter.drawImage(0, 0, image, 900, 900)
         
         self.image = newImage
@@ -124,22 +139,38 @@ class MyMainWindow(QtGui.QMainWindow):
 
 		# ading QImage
 		self.scribbleArea = ScribbleArea(self)
-		self.clearImage()
 		"""
 		self.scrollArea = QtGui.QScrollArea()
 		self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
 		self.scrollArea.setWidget(self.scribbleArea)
 		"""
-		self.hlt_canvas_menu_buttons.addWidget(self.scribbleArea)
+		self.vlt_top.addWidget(self.scribbleArea)
 
 		# connect functions
-		self.connect(self.btn_clear, QtCore.SIGNAL('clicked()'), self.clearImage)
-		self.connect(self.btn_color, QtCore.SIGNAL('clicked()'), self.penColor)
-		self.connect(self.btn_size, QtCore.SIGNAL('clicked()'), self.penWidth)
+		self.act_clear.triggered.connect(self.clearImage)
+		self.act_color.triggered.connect(self.penColor)
+		self.act_width.triggered.connect(self.penWidth)
 		
-		# create menu bar
-		self.createActions()
-		self.createMenus()
+		self.connect(self.btn_canvas_session, QtCore.SIGNAL('clicked()'), self.canvasSession)
+		self.connect(self.btn_audio_session, QtCore.SIGNAL('clicked()'), self.audioSession)
+		
+		self.act_help.triggered.connect(self.showHelp)
+		self.act_about.triggered.connect(self.showAbout)
+		
+		# extend menu bar
+		self.addActions()
+		
+	def canvasSession(self):			
+		if self.btn_canvas_session.isChecked():
+			self.btn_canvas_session.setText(app.translate("wnd_main","Canvas session ON"))
+		else:
+			self.btn_canvas_session.setText(app.translate("wnd_main","Canvas session OFF"))
+			
+	def audioSession(self):			
+		if self.btn_audio_session.isChecked():
+			self.btn_audio_session.setText(app.translate("wnd_main","Audio session ON"))
+		else:
+			self.btn_audio_session.setText(app.translate("wnd_main","Audio session OFF"))
 
 	def penColor(self):
 		# opens dialog to change pen color
@@ -149,16 +180,26 @@ class MyMainWindow(QtGui.QMainWindow):
 
 	def penWidth(self):
 		# opens dialog to change pen width
-		newWidth, ok = QtGui.QInputDialog.getInteger(self, "E-learning",
-			"Select pen width:", self.scribbleArea.penWidth(), 1, 50, 1)
+		newWidth, ok = QtGui.QInputDialog.getInteger(self, "e-learning",
+			app.translate("wnd_main","Select pen width:"), 
+			self.scribbleArea.penWidth(), 1, 50, 1)
 		if ok:
 			self.scribbleArea.setPenWidth(newWidth)
 			
 	def clearImage(self):
-		# clears image
-		self.scribbleArea.image.fill(QtGui.qRgb(255, 255, 255))
-		self.scribbleArea.modified = True
-		self.scribbleArea.update()	
+		if self.scribbleArea.modified == True:
+			reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Clear"),
+				app.translate("wnd_main", "Do you want to clear the canvas?"), 
+				QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+				QtGui.QMessageBox.No)
+			
+			if reply == QtGui.QMessageBox.Yes:
+				# clears image
+				self.scribbleArea.image.fill(QtGui.qRgb(255, 255, 255))
+				self.scribbleArea.modified = False
+				self.scribbleArea.update()	
+			else: 
+				pass
 		
 	def saveFile(self):
 		# opens dialog to save file with selected file type
@@ -172,8 +213,8 @@ class MyMainWindow(QtGui.QMainWindow):
 
 		return False
         
-	def createActions(self):
-		# creates sub menus
+	def addActions(self):
+		# creates sub menus for Save As...
 		for format in QtGui.QImageWriter.supportedImageFormats():
 			format = str(format)
 
@@ -181,29 +222,80 @@ class MyMainWindow(QtGui.QMainWindow):
 
 			action = QtGui.QAction(text, self, triggered=self.saveFile)
 			action.setData(format)
+			
 			self.saveAsActs.append(action)
-
-		self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
-			triggered=self.close)
-
-	def createMenus(self):
-		# creates menus
-		self.saveAsMenu = QtGui.QMenu("&Save As", self)
+			
 		for action in self.saveAsActs:
-			self.saveAsMenu.addAction(action)
+			self.act_saveas.addAction(action)
+		
+	def showHelp(self):
+		QtGui.QDialog.__init__(self)
+		self.helpForm = uic.loadUi('help.ui')
+		self.helpForm.show()
+		
+		self.connect(self.helpForm.btn_back, QtCore.SIGNAL('clicked()'), 
+			self.helpForm.tbr_help, QtCore.SLOT("backward()"))
+		self.connect(self.helpForm.btn_home, QtCore.SIGNAL('clicked()'), 
+			self.helpForm.tbr_help, QtCore.SLOT("home()"))
+		self.connect(self.helpForm.tbr_help, QtCore.SIGNAL("sourceChanged(QUrl)"), 
+			self.updatePageTitle)
+			
+		self.helpForm.tbr_help.setSource((QtCore.QUrl.fromLocalFile("../docs/help/index.html")))
+		
+	def showAbout(self):
+		QtGui.QMessageBox.about(self, app.translate("wnd_main", "About"), 
+                """<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
+                plugin for sharing your ideas and thoughts with others.</p>
+                
+                <p>It is an open source project; you can always find the latest
+                version of code at <a href="https://github.com/dae-eklen/E-learning">github</a>
+                page.</p> 
+                
+                <p>Current version: 0.0.1</p>
+                """)
+			
+	def updatePageTitle(self):
+		self.helpForm.lab_title.setText(self.helpForm.tbr_help.documentTitle())  
+					
+	def closeEvent(self, event):
+		reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Exit"),
+			app.translate("wnd_main", "Are you sure to quit?"), 
+			QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+			QtGui.QMessageBox.No)
+			
+		if reply == QtGui.QMessageBox.Yes:
+			try:
+				sys.exit(self.helpForm)
+			except: 
+				pass
+			event.accept()
+		else:
+			event.ignore() 
 
-		fileMenu = QtGui.QMenu("&File", self)
-		fileMenu.addMenu(self.saveAsMenu)
-		fileMenu.addAction(self.exitAct)
-		
-		helpMenu = QtGui.QMenu("&Help", self)
-		self.menuBar().addMenu(fileMenu)
-		self.menuBar().addMenu(helpMenu)
-        
-        	
-		
+
 if __name__ == "__main__":
 	app = QtGui.QApplication(sys.argv)
+	
+	# i18n
+	print QtCore.QLocale.system().name()
+	
+	translator_my = QtCore.QTranslator()
+	translator_my.load('i18n/i18n_' + QtCore.QLocale.system().name() + '.qm')
+	#translator_my.load('i18n/i18n_ru_Ru.qm')
+	app.installTranslator(translator_my)
+	
+	translator_qt = QtCore.QTranslator()
+	translator_qt.load('i18n/qt_' + QtCore.QLocale.system().name()[:2] + '.qm')	
+	#translator_qt.load('i18n/qt_ru.qm')
+	app.installTranslator(translator_qt)
+	
+	translator_help = QtCore.QTranslator()
+	translator_help.load('i18n/help_' + QtCore.QLocale.system().name() + '.qm')	
+	#translator_help.load('i18n/help_ru_Ru.qm')
+	app.installTranslator(translator_help)
+	
+	# show	
 	myApp = MyMainWindow()
 	myApp.show()
+	
 	sys.exit(app.exec_())

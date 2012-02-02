@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/add_act.png</file>
+    <file>icons/audio_off_act.png</file>
+    <file>icons/audio_on_act.png</file>
+    <file>icons/clear_act.png</file>
+    <file>icons/undo_act.png</file>
+    <file>icons/width_act.png</file>
+    <file>icons/color_act.png</file>
+    <file>icons/logotype.png</file>
+    <file>icons/back.png</file>
+    <file>icons/home.png</file>
+  </qresource>
+</RCC>
