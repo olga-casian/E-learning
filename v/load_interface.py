@@ -7,8 +7,10 @@ sip.setapi('QVariant', 2)
 
 import sys
 from PyQt4 import QtCore, QtGui, uic
+import log
 
 import resource.res
+
 
 
 class ScribbleArea(QtGui.QWidget):
@@ -70,6 +72,7 @@ class ScribbleArea(QtGui.QWidget):
 				self.myPenWidth, "-", \
 				self.myPenColor.red(), " ", \
 				self.myPenColor.green(), " ", self.myPenColor.blue()
+				
 
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton and self.scribbling:
@@ -160,6 +163,8 @@ class MyMainWindow(QtGui.QMainWindow):
 		# extend menu bar
 		self.addActions()
 		
+		logs.write_log('', verbosity = 'DEBUG', comment = 'initialization done...')
+		
 	def canvasSession(self):			
 		if self.btn_canvas_session.isChecked():
 			self.btn_canvas_session.setText(app.translate("wnd_main","Canvas session ON"))
@@ -177,6 +182,7 @@ class MyMainWindow(QtGui.QMainWindow):
 		newColor = QtGui.QColorDialog.getColor(self.scribbleArea.penColor())
 		if newColor.isValid():
 			self.scribbleArea.setPenColor(newColor)
+			logs.write_log(newColor, verbosity = 'DEBUG', comment = 'new color')
 
 	def penWidth(self):
 		# opens dialog to change pen width
@@ -185,6 +191,7 @@ class MyMainWindow(QtGui.QMainWindow):
 			self.scribbleArea.penWidth(), 1, 50, 1)
 		if ok:
 			self.scribbleArea.setPenWidth(newWidth)
+			logs.write_log(newWidth, verbosity = 'DEBUG', comment = 'new width')
 			
 	def clearImage(self):
 		if self.scribbleArea.modified == True:
@@ -197,7 +204,10 @@ class MyMainWindow(QtGui.QMainWindow):
 				# clears image
 				self.scribbleArea.image.fill(QtGui.qRgb(255, 255, 255))
 				self.scribbleArea.modified = False
-				self.scribbleArea.update()	
+				self.scribbleArea.update()
+				
+				logs.write_log('', verbosity = 'DEBUG', comment = 'image cleared...')
+				logs.write_log(self.scribbleArea.modified, verbosity = 'DEBUG', comment = 'self.scribbleArea.modified')
 			else: 
 				pass
 		
@@ -229,6 +239,8 @@ class MyMainWindow(QtGui.QMainWindow):
 			self.act_saveas.addAction(action)
 		
 	def showHelp(self):
+		logs.write_log('', verbosity = 'DEBUG', comment = 'help showed...')
+		
 		QtGui.QDialog.__init__(self)
 		self.helpForm = uic.loadUi('help.ui')
 		self.helpForm.show()
@@ -264,6 +276,8 @@ class MyMainWindow(QtGui.QMainWindow):
 			QtGui.QMessageBox.No)
 			
 		if reply == QtGui.QMessageBox.Yes:
+			logs.write_log('', verbosity = 'DEBUG', comment = 'quiting...')
+			
 			try:
 				sys.exit(self.helpForm)
 			except: 
@@ -274,11 +288,12 @@ class MyMainWindow(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
+	logs = log.Log(fileName = 'test.log', writeVerbosity = 'DEBUG')
+	logs.write_log('', verbosity = 'DEBUG', comment = 'starting...')
+	
 	app = QtGui.QApplication(sys.argv)
 	
-	# i18n
-	print QtCore.QLocale.system().name()
-	
+	# i18n	
 	translator_my = QtCore.QTranslator()
 	translator_my.load('i18n/i18n_' + QtCore.QLocale.system().name() + '.qm')
 	#translator_my.load('i18n/i18n_ru_Ru.qm')
@@ -293,6 +308,8 @@ if __name__ == "__main__":
 	translator_help.load('i18n/help_' + QtCore.QLocale.system().name() + '.qm')	
 	#translator_help.load('i18n/help_ru_Ru.qm')
 	app.installTranslator(translator_help)
+	
+	logs.write_log(QtCore.QLocale.system().name(), verbosity = 'DEBUG', comment = 'language set...')
 	
 	# show	
 	myApp = MyMainWindow()
