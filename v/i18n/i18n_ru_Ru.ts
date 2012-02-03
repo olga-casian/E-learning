@@ -135,13 +135,13 @@
     </message>
     <message>
         <location filename="project.ui" line="269"/>
-        <source>Undo latest stroke   Shift+Z</source>
-        <translation>Отменить последний штрих   Shift+Z</translation>
+        <source>Undo latest stroke   Ctrl+Z</source>
+        <translation>Отменить последний штрих   Ctrl+Z</translation>
     </message>
     <message>
         <location filename="project.ui" line="272"/>
-        <source>Shift+Z</source>
-        <translation>Shift+Z</translation>
+        <source>Ctrl+Z</source>
+        <translation>Ctrl+Z</translation>
     </message>
     <message>
         <location filename="project.ui" line="281"/>

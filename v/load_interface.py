@@ -1,5 +1,45 @@
 #!/usr/bin/env python
 
+#############################################################################
+##
+## Copyright (C) 2010 Riverbank Computing Limited.
+## Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+## All rights reserved.
+##
+## This file is part of the examples of PyQt.
+##
+## $QT_BEGIN_LICENSE:BSD$
+## You may use this file under the terms of the BSD license as follows:
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are
+## met:
+##   * Redistributions of source code must retain the above copyright
+##     notice, this list of conditions and the following disclaimer.
+##   * Redistributions in binary form must reproduce the above copyright
+##     notice, this list of conditions and the following disclaimer in
+##     the documentation and/or other materials provided with the
+##     distribution.
+##   * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
+##     the names of its contributors may be used to endorse or promote
+##     products derived from this software without specific prior written
+##     permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+## "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+## LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+## A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+## OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+## SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+## LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+## DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+## THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+## $QT_END_LICENSE$
+##
+#############################################################################
+
 # These are only needed for Python v2 but are harmless for Python v3
 import sip
 sip.setapi('QString', 2)
@@ -12,34 +52,30 @@ import log
 import resource.res
 
 
-
 class ScribbleArea(QtGui.QWidget):
     """
-    class adds QImage to MyMainWindow, overrides parent's event functions
-    """
-    def __init__(self, parent=None):
-        super(ScribbleArea, self).__init__(parent)
+	class adds canvas area to MainWindow, overrides parent's event functions
+	"""
+    def __init__(self, parent = None):
+        QtGui.QWidget.__init__(self, parent)
 
         self.setAttribute(QtCore.Qt.WA_StaticContents)
-        
         self.modified = False
         self.scribbling = False
-       
         self.myPenWidth = 2
-        self.myPenColor = QtGui.QColor(0, 85, 255) #QtCore.Qt.blue
-        """
-        self.maxRect = QtCore.QRect(0,0,0,0)
-        self.maxX = 0
-        self.maxY = 0
-        """
+        self.myPenColor = QtGui.QColor(0, 85, 255)
         imageSize = QtCore.QSize()
         self.image = QtGui.QImage(imageSize, QtGui.QImage.Format_RGB32)
         self.lastPoint = QtCore.QPoint()
+        """
+		self.scrollArea = QtGui.QScrollArea()
+		self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+		self.scrollArea.setWidget(self.scribbleArea)
+		"""
 
     def saveImage(self, fileName, fileFormat):
-        # saves visible image
         visibleImage = self.image
-        self.resizeImage(visibleImage, self.size())
+        #self.resizeImage(visibleImage, self.size())
 
         if visibleImage.save(fileName, fileFormat):
             self.modified = False
@@ -47,12 +83,13 @@ class ScribbleArea(QtGui.QWidget):
         else:
             return False
 
+    def setPenColor(self, newColor):
+        self.myPenColor = newColor
+
+    def setPenWidth(self, newWidth):
+        self.myPenWidth = newWidth
+
     def mousePressEvent(self, event):
-#       print "self.image.width() = %d" % self.image.width()
-#       print "self.image.height() = %d" % self.image.height()
-#       print "self.image.size() = %s" % self.image.size()
-#       print "self.size() = %s" % self.size()
-#       print "event.pos() = %s" % event.pos()
         if event.button() == QtCore.Qt.LeftButton:
             self.lastPoint = event.pos()
             self.scribbling = True
@@ -60,57 +97,58 @@ class ScribbleArea(QtGui.QWidget):
     def mouseMoveEvent(self, event):
         if (event.buttons() & QtCore.Qt.LeftButton) and self.scribbling:
             self.drawLineTo(event.pos())
-            """
-            if event.x() > self.maxX:
-			    self.maxX = event.x()
-            if event.y() > self.maxY:
-                self.maxY = event.y()               
-            self.maxRect.setRect(0, 0, self.maxX, self.maxY)
-            print 'max: ', self.maxX, self.maxY, self.maxRect
-            """
             print "event.pos() = ", event.x(), " ", event.y(), "-", \
 				self.myPenWidth, "-", \
 				self.myPenColor.red(), " ", \
 				self.myPenColor.green(), " ", self.myPenColor.blue()
-				
 
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton and self.scribbling:
             self.drawLineTo(event.pos())
             self.scribbling = False
 
-    def paintEvent(self, event):
-        painter = QtGui.QPainter(self)
-        painter.drawImage(event.rect(), self.image)
+    def paintEvent(self, event):     
+        painter = QtGui.QPainter()
+        painter.begin(self)
+        painter.drawImage(QtCore.QPoint(0, 0), self.image)
+        painter.end()
 
-    def resizeEvent(self, event):		
-        self.resizeImage(self.image, event.size())
+    def resizeEvent(self, event):
+        if self.width() > self.image.width() or self.height() > self.image.height():
+            newWidth = max(self.width() + 128, self.image.width())
+            newHeight = max(self.height() + 128, self.image.height())
+            self.resizeImage(self.image, QtCore.QSize(newWidth, newHeight))
+            self.update()
 
-        super(ScribbleArea, self).resizeEvent(event)
+        QtGui.QWidget.resizeEvent(self, event)
+
+    def drawLineTo(self, endPoint):
+        painter = QtGui.QPainter()
+        painter.begin(self.image)
+        painter.setPen(QtGui.QPen(self.myPenColor, self.myPenWidth,
+                                  QtCore.Qt.SolidLine, QtCore.Qt.RoundCap,
+                                  QtCore.Qt.RoundJoin))
+        painter.drawLine(self.lastPoint, endPoint)
+        painter.end()
+        self.modified = True
+
+        rad = self.myPenWidth / 2
+        self.update(QtCore.QRect(self.lastPoint, endPoint).normalized()
+                                         .adjusted(-rad, -rad, +rad, +rad))
+        self.lastPoint = QtCore.QPoint(endPoint)
 
     def resizeImage(self, image, newSize):
         if image.size() == newSize:
             return
-            
+
         newImage = QtGui.QImage(newSize, QtGui.QImage.Format_RGB32)
         newImage.fill(QtGui.qRgb(255, 255, 255))
-        painter = QtGui.QPainter(newImage)
+        painter = QtGui.QPainter()
+        painter.begin(newImage)
         painter.drawImage(QtCore.QPoint(0, 0), image)
-        #painter.drawImage(self.maxRect, image)
-        #painter.drawImage(0, 0, image, 900, 900)
-        
+        painter.end()
         self.image = newImage
-        
-    def drawLineTo(self, endPoint):
-        painter = QtGui.QPainter(self.image)
-        painter.setPen(QtGui.QPen(self.myPenColor, self.myPenWidth,
-            QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
-        painter.drawLine(self.lastPoint, endPoint)
-        self.modified = True
-
-        self.update()
-        self.lastPoint = QtCore.QPoint(endPoint)
-
+    
     def isModified(self):
         return self.modified
 
@@ -119,40 +157,30 @@ class ScribbleArea(QtGui.QWidget):
 
     def penWidth(self):
         return self.myPenWidth
-    
-    def setPenColor(self, newColor):
-        self.myPenColor = newColor
-
-    def setPenWidth(self, newWidth):
-        self.myPenWidth = newWidth
 
 
-class MyMainWindow(QtGui.QMainWindow):	
+class MainWindow(QtGui.QMainWindow):	
 	"""
 	class for loading and extending .ui file generated in Qt Designer;
 	has basic functionality of interface
 	"""
 	def __init__(self, parent=None):
-		super(MyMainWindow, self).__init__(parent)
+		super(MainWindow, self).__init__(parent)
 		
 		self.saveAsActs = []
 		
 		# loading .ui
 		uic.loadUi('project.ui', self)        
 
-		# ading QImage
+		# ading canvas
 		self.scribbleArea = ScribbleArea(self)
-		"""
-		self.scrollArea = QtGui.QScrollArea()
-		self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
-		self.scrollArea.setWidget(self.scribbleArea)
-		"""
 		self.vlt_top.addWidget(self.scribbleArea)
 
 		# connect functions
 		self.act_clear.triggered.connect(self.clearImage)
 		self.act_color.triggered.connect(self.penColor)
 		self.act_width.triggered.connect(self.penWidth)
+		self.act_undo.triggered.connect(self.undo)
 		
 		self.connect(self.btn_canvas_session, QtCore.SIGNAL('clicked()'), self.canvasSession)
 		self.connect(self.btn_audio_session, QtCore.SIGNAL('clicked()'), self.audioSession)
@@ -193,7 +221,11 @@ class MyMainWindow(QtGui.QMainWindow):
 			self.scribbleArea.setPenWidth(newWidth)
 			logs.write_log(newWidth, verbosity = 'DEBUG', comment = 'new width')
 			
+	def undo(self):
+		print 'undo'
+			
 	def clearImage(self):
+		# triggered on pressing 'Clear' (Shift+X)
 		if self.scribbleArea.modified == True:
 			reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Clear"),
 				app.translate("wnd_main", "Do you want to clear the canvas?"), 
@@ -215,12 +247,11 @@ class MyMainWindow(QtGui.QMainWindow):
 		# opens dialog to save file with selected file type
 		fileFormat = self.sender().data()
 		initialPath = QtCore.QDir.currentPath() + '/untitled.' + fileFormat
-		fileName = QtGui.QFileDialog.getSaveFileName(self, "Save As", initialPath,
-			"%s Files (*.%s);;All Files (*)" % (fileFormat.upper(), fileFormat))
-
+		fileName = QtGui.QFileDialog.getSaveFileName(self, 
+			app.translate("wnd_main", "Save As..."), initialPath,
+			".%s Files (*.%s);;All Files (*)" % (fileFormat.lower(), fileFormat))
 		if fileName:
 			return self.scribbleArea.saveImage(fileName, fileFormat)
-
 		return False
         
 	def addActions(self):
@@ -239,6 +270,7 @@ class MyMainWindow(QtGui.QMainWindow):
 			self.act_saveas.addAction(action)
 		
 	def showHelp(self):
+		# opens help dialog
 		logs.write_log('', verbosity = 'DEBUG', comment = 'help showed...')
 		
 		QtGui.QDialog.__init__(self)
@@ -255,6 +287,7 @@ class MyMainWindow(QtGui.QMainWindow):
 		self.helpForm.tbr_help.setSource((QtCore.QUrl.fromLocalFile("../docs/help/index.html")))
 		
 	def showAbout(self):
+		# opens about dialog
 		QtGui.QMessageBox.about(self, app.translate("wnd_main", "About"), 
                 """<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
                 plugin for sharing your ideas and thoughts with others.</p>
@@ -267,9 +300,11 @@ class MyMainWindow(QtGui.QMainWindow):
                 """)
 			
 	def updatePageTitle(self):
+		# used to update label for title (helpForm.lab_title) in help dialog
 		self.helpForm.lab_title.setText(self.helpForm.tbr_help.documentTitle())  
 					
 	def closeEvent(self, event):
+		# called on close (Ctrl+Q)
 		reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Exit"),
 			app.translate("wnd_main", "Are you sure to quit?"), 
 			QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
@@ -280,7 +315,7 @@ class MyMainWindow(QtGui.QMainWindow):
 			
 			try:
 				sys.exit(self.helpForm)
-			except: 
+			except AttributeError:
 				pass
 			event.accept()
 		else:
@@ -312,7 +347,7 @@ if __name__ == "__main__":
 	logs.write_log(QtCore.QLocale.system().name(), verbosity = 'DEBUG', comment = 'language set...')
 	
 	# show	
-	myApp = MyMainWindow()
+	myApp = MainWindow()
 	myApp.show()
 	
 	sys.exit(app.exec_())

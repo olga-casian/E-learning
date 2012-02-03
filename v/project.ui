@@ -16,12 +16,6 @@
     <height>500</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>700</width>
-    <height>500</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>e-learning</string>
   </property>
@@ -318,10 +312,10 @@
     <string>Undo</string>
    </property>
    <property name="toolTip">
-    <string>Undo latest stroke   Shift+Z</string>
+    <string>Undo latest stroke   Ctrl+Z</string>
    </property>
    <property name="shortcut">
-    <string>Shift+Z</string>
+    <string>Ctrl+Z</string>
    </property>
   </action>
   <action name="act_clear">
