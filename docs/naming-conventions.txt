@@ -1,5 +1,6 @@
-NAMING CONVENTIONS
+=====NAMING CONVENTIONS=====
 
+-----INTERFACE WIDGETS-----
 Push Button -> btn
 Radio Button -> rad
 Tab Widget -> tab
@@ -24,12 +25,17 @@ menubar -> mbr
 separator -> sep
 textBrowser -> tbr
 
-
 verticalLayout -> vlt
 horizontalLayout -> hlt
 horizontalSpacer -> hsr
 verticalSpacer -> vsr
 
-
 MainWindow -> main_wnd
 
+
+-----CODE-----
+- use tabs (=4 spaces)
+- vars: camelCase
+- classes: CapitalizedCamelCase
+-- methods: camelCase
+-- attributes: camelCase

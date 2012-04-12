@@ -14,16 +14,16 @@
 ## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are
 ## met:
-##   * Redistributions of source code must retain the above copyright
-##     notice, this list of conditions and the following disclaimer.
-##   * Redistributions in binary form must reproduce the above copyright
-##     notice, this list of conditions and the following disclaimer in
-##     the documentation and/or other materials provided with the
-##     distribution.
-##   * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
-##     the names of its contributors may be used to endorse or promote
-##     products derived from this software without specific prior written
-##     permission.
+##	 * Redistributions of source code must retain the above copyright
+##	   notice, this list of conditions and the following disclaimer.
+##	 * Redistributions in binary form must reproduce the above copyright
+##	   notice, this list of conditions and the following disclaimer in
+##	   the documentation and/or other materials provided with the
+##	   distribution.
+##	 * Neither the name of Nokia Corporation and its Subsidiary(-ies) nor
+##	   the names of its contributors may be used to endorse or promote
+##	   products derived from this software without specific prior written
+##	   permission.
 ##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ## "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -46,117 +46,195 @@ sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
 import sys
+import os
+import time
 from PyQt4 import QtCore, QtGui, uic
-import log
 
+import log
+from history import Point, History
 import resource.res
 
 
+FORMAT = 'jpeg'
+PATH_TEMP = os.path.join('.', 'temp')
+PATH_V = os.path.join('.', 'v')
+PATH_UI = os.path.join('.', 'v', 'project.ui')
+PATH_UI_HELP = os.path.join('.', 'v', 'help.ui')
+PATH_DOC_HELP = os.path.join('.', 'docs', 'help', 'index.html')
+app = QtGui.QApplication(sys.argv)
+
+
 class ScribbleArea(QtGui.QWidget):
-    """
+	"""
 	class adds canvas area to MainWindow, overrides parent's event functions
 	"""
-    def __init__(self, parent = None):
-        QtGui.QWidget.__init__(self, parent)
+	def __init__(self, parent = None):
+		QtGui.QWidget.__init__(self, parent)
 
-        self.setAttribute(QtCore.Qt.WA_StaticContents)
-        self.modified = False
-        self.scribbling = False
-        self.myPenWidth = 2
-        self.myPenColor = QtGui.QColor(0, 85, 255)
-        imageSize = QtCore.QSize()
-        self.image = QtGui.QImage(imageSize, QtGui.QImage.Format_RGB32)
-        self.lastPoint = QtCore.QPoint()
-        """
+		self.setAttribute(QtCore.Qt.WA_StaticContents)
+		self.modified = False
+		self.scribbling = False
+		self.myPenWidth = 2
+		self.myPenColor = QtGui.QColor(0, 85, 255)
+		imageSize = QtCore.QSize()
+		self.image = QtGui.QImage(imageSize, QtGui.QImage.Format_RGB32)
+		self.lastPoint = QtCore.QPoint()
+		"""
 		self.scrollArea = QtGui.QScrollArea()
 		self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
 		self.scrollArea.setWidget(self.scribbleArea)
-		"""
+		"""		
+		self.history = History()
 
-    def saveImage(self, fileName, fileFormat):
-        visibleImage = self.image
-        #self.resizeImage(visibleImage, self.size())
+	def saveImage(self, fileName, fileFormat):
+		visibleImage = self.image
+		#self.resizeImage(visibleImage, self.size())
 
-        if visibleImage.save(fileName, fileFormat):
-            self.modified = False
-            return True
-        else:
-            return False
+		if visibleImage.save(fileName, fileFormat):
+			self.modified = False
+			return True
+		else:
+			return False
 
-    def setPenColor(self, newColor):
-        self.myPenColor = newColor
+	def setPenColor(self, newColor):
+		self.myPenColor = newColor
 
-    def setPenWidth(self, newWidth):
-        self.myPenWidth = newWidth
+	def setPenWidth(self, newWidth):
+		self.myPenWidth = newWidth
 
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self.lastPoint = event.pos()
-            self.scribbling = True
+	def mousePressEvent(self, event):
+		if event.button() == QtCore.Qt.LeftButton:
+			self.lastPoint = event.pos()
+			self.scribbling = True
+			
+			self.history.newStroke(event.x(), event.y(), self.myPenWidth, \
+				self.myPenColor.red(), self.myPenColor.green(), \
+				self.myPenColor.blue())
+			#self.history.printHistory()
 
-    def mouseMoveEvent(self, event):
-        if (event.buttons() & QtCore.Qt.LeftButton) and self.scribbling:
-            self.drawLineTo(event.pos())
-            print "event.pos() = ", event.x(), " ", event.y(), "-", \
-				self.myPenWidth, "-", \
-				self.myPenColor.red(), " ", \
-				self.myPenColor.green(), " ", self.myPenColor.blue()
+	def mouseMoveEvent(self, event):
+		if (event.buttons() & QtCore.Qt.LeftButton) and self.scribbling:
+			self.drawLineTo(event.pos())
+			self.history.newPoint(event.x(), event.y(), self.myPenWidth, \
+				self.myPenColor.red(), self.myPenColor.green(), \
+				self.myPenColor.blue())
+				
+	def redraw(self):
+		# used for undo
+		
+		# clear canvas
+		self.image.fill(QtGui.qRgb(255, 255, 255))
+		self.modified = False
+		self.update()
+		
+		# redraw
+		painter = QtGui.QPainter()
+		
+		for stroke in self.history.history:
+			startX = -1
+			startY = -1
+			for point in stroke:
+				x = point.getX()
+				y = point.getY()
+				w = point.getW()
+				cR = point.getCR()
+				cG = point.getCG()
+				cB = point.getCB()
+				
+				if startX == -1 and startY == -1:
+					startX = x
+					startY = y
+					continue
+					
+				painter.begin(self.image)		
+				painter.setPen(QtGui.QPen(QtGui.QColor(cR, cG, cB), w,
+										  QtCore.Qt.SolidLine, QtCore.Qt.RoundCap,
+										  QtCore.Qt.RoundJoin))
+				painter.drawLine(QtCore.QPoint(startX, startY), QtCore.QPoint(x, y))		
+				painter.end()
+				rad = self.myPenWidth / 2
+				self.update(QtCore.QRect(QtCore.QPoint(startX, startY), QtCore.QPoint(x, y))
+					.normalized().adjusted(-rad, -rad, +rad, +rad))	
+					
+				startX = x
+				startY = y						 
 
-    def mouseReleaseEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton and self.scribbling:
-            self.drawLineTo(event.pos())
-            self.scribbling = False
+	def mouseReleaseEvent(self, event):
+		if event.button() == QtCore.Qt.LeftButton and self.scribbling:
+			self.drawLineTo(event.pos())
+			self.scribbling = False
 
-    def paintEvent(self, event):     
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        painter.drawImage(QtCore.QPoint(0, 0), self.image)
-        painter.end()
+	def paintEvent(self, event):	 
+		painter = QtGui.QPainter()
+		painter.begin(self)
+		painter.drawImage(QtCore.QPoint(0, 0), self.image)
+		painter.end()
 
-    def resizeEvent(self, event):
-        if self.width() > self.image.width() or self.height() > self.image.height():
-            newWidth = max(self.width() + 128, self.image.width())
-            newHeight = max(self.height() + 128, self.image.height())
-            self.resizeImage(self.image, QtCore.QSize(newWidth, newHeight))
-            self.update()
+	def resizeEvent(self, event):
+		if self.width() > self.image.width() or self.height() > self.image.height():
+			newWidth = max(self.width() + 128, self.image.width())
+			newHeight = max(self.height() + 128, self.image.height())
+			self.resizeImage(self.image, QtCore.QSize(newWidth, newHeight))
+			self.update()
 
-        QtGui.QWidget.resizeEvent(self, event)
+		QtGui.QWidget.resizeEvent(self, event)
 
-    def drawLineTo(self, endPoint):
-        painter = QtGui.QPainter()
-        painter.begin(self.image)
-        painter.setPen(QtGui.QPen(self.myPenColor, self.myPenWidth,
-                                  QtCore.Qt.SolidLine, QtCore.Qt.RoundCap,
-                                  QtCore.Qt.RoundJoin))
-        painter.drawLine(self.lastPoint, endPoint)
-        painter.end()
-        self.modified = True
+	def drawLineTo(self, endPoint):
+		painter = QtGui.QPainter()
+		painter.begin(self.image)
+		painter.setPen(QtGui.QPen(self.myPenColor, self.myPenWidth,
+								  QtCore.Qt.SolidLine, QtCore.Qt.RoundCap,
+								  QtCore.Qt.RoundJoin))
+		painter.drawLine(self.lastPoint, endPoint)
+		painter.end()
+		self.modified = True
 
-        rad = self.myPenWidth / 2
-        self.update(QtCore.QRect(self.lastPoint, endPoint).normalized()
-                                         .adjusted(-rad, -rad, +rad, +rad))
-        self.lastPoint = QtCore.QPoint(endPoint)
+		rad = self.myPenWidth / 2
+		self.update(QtCore.QRect(self.lastPoint, endPoint).normalized()
+										 .adjusted(-rad, -rad, +rad, +rad))
+		self.lastPoint = QtCore.QPoint(endPoint)
 
-    def resizeImage(self, image, newSize):
-        if image.size() == newSize:
-            return
+	def resizeImage(self, image, newSize):
+		if image.size() == newSize:
+			return
 
-        newImage = QtGui.QImage(newSize, QtGui.QImage.Format_RGB32)
-        newImage.fill(QtGui.qRgb(255, 255, 255))
-        painter = QtGui.QPainter()
-        painter.begin(newImage)
-        painter.drawImage(QtCore.QPoint(0, 0), image)
-        painter.end()
-        self.image = newImage
-    
-    def isModified(self):
-        return self.modified
+		newImage = QtGui.QImage(newSize, QtGui.QImage.Format_RGB32)
+		newImage.fill(QtGui.qRgb(255, 255, 255))
+		painter = QtGui.QPainter()
+		painter.begin(newImage)
+		painter.drawImage(QtCore.QPoint(0, 0), image)
+		painter.end()
+		self.image = newImage
+	
+	def isModified(self):
+		return self.modified
 
-    def penColor(self):
-        return self.myPenColor
+	def penColor(self):
+		return self.myPenColor
 
-    def penWidth(self):
-        return self.myPenWidth
+	def penWidth(self):
+		return self.myPenWidth
+	
+	def clearImage(self):
+		# triggered on pressing 'Clear' (Shift+X)
+		if self.modified == True:
+			reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Clear"),
+				app.translate("wnd_main", "Do you want to clear the canvas?"), 
+				QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+				QtGui.QMessageBox.No)
+			
+			if reply == QtGui.QMessageBox.Yes:
+				# clears image
+				self.image.fill(QtGui.qRgb(255, 255, 255))
+				self.modified = False
+				self.update()
+				
+				self.history.clear()
+				
+				#logs.write_log('', verbosity = 'DEBUG', comment = 'image cleared...')
+				#logs.write_log(self.scribbleArea.modified, verbosity = 'DEBUG', comment = 'self.scribbleArea.modified')
+			else: 
+				pass
 
 
 class MainWindow(QtGui.QMainWindow):	
@@ -170,17 +248,18 @@ class MainWindow(QtGui.QMainWindow):
 		self.saveAsActs = []
 		
 		# loading .ui
-		uic.loadUi('project.ui', self)        
+		uic.loadUi(PATH_UI, self)		  
 
 		# ading canvas
 		self.scribbleArea = ScribbleArea(self)
 		self.vlt_top.addWidget(self.scribbleArea)
 
 		# connect functions
-		self.act_clear.triggered.connect(self.clearImage)
+		self.act_clear.triggered.connect(self.scribbleArea.clearImage)
 		self.act_color.triggered.connect(self.penColor)
 		self.act_width.triggered.connect(self.penWidth)
 		self.act_undo.triggered.connect(self.undo)
+		self.act_add.triggered.connect(self.add)
 		
 		self.connect(self.btn_canvas_session, QtCore.SIGNAL('clicked()'), self.canvasSession)
 		self.connect(self.btn_audio_session, QtCore.SIGNAL('clicked()'), self.audioSession)
@@ -191,7 +270,7 @@ class MainWindow(QtGui.QMainWindow):
 		# extend menu bar
 		self.addActions()
 		
-		logs.write_log('', verbosity = 'DEBUG', comment = 'initialization done...')
+		#logs.write_log('', verbosity = 'DEBUG', comment = 'initialization done...')
 		
 	def canvasSession(self):			
 		if self.btn_canvas_session.isChecked():
@@ -210,7 +289,7 @@ class MainWindow(QtGui.QMainWindow):
 		newColor = QtGui.QColorDialog.getColor(self.scribbleArea.penColor())
 		if newColor.isValid():
 			self.scribbleArea.setPenColor(newColor)
-			logs.write_log(newColor, verbosity = 'DEBUG', comment = 'new color')
+			#logs.write_log(newColor, verbosity = 'DEBUG', comment = 'new color')
 
 	def penWidth(self):
 		# opens dialog to change pen width
@@ -219,29 +298,22 @@ class MainWindow(QtGui.QMainWindow):
 			self.scribbleArea.penWidth(), 1, 50, 1)
 		if ok:
 			self.scribbleArea.setPenWidth(newWidth)
-			logs.write_log(newWidth, verbosity = 'DEBUG', comment = 'new width')
+			#logs.write_log(newWidth, verbosity = 'DEBUG', comment = 'new width')
 			
 	def undo(self):
-		print 'undo'
+		if not self.scribbleArea.history.removeLast(): print 'empty history'
+		self.scribbleArea.redraw()
+		
+	def add(self):
+		if not os.path.exists(PATH_TEMP):
+			try: 
+				os.makedirs(PATH_TEMP)
+				print PATH_TEMP + " was created..."
+			except:
+				print "cannot create directory " + PATH_TEMP
 			
-	def clearImage(self):
-		# triggered on pressing 'Clear' (Shift+X)
-		if self.scribbleArea.modified == True:
-			reply = QtGui.QMessageBox.question(self, app.translate("wnd_main", "Clear"),
-				app.translate("wnd_main", "Do you want to clear the canvas?"), 
-				QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
-				QtGui.QMessageBox.No)
-			
-			if reply == QtGui.QMessageBox.Yes:
-				# clears image
-				self.scribbleArea.image.fill(QtGui.qRgb(255, 255, 255))
-				self.scribbleArea.modified = False
-				self.scribbleArea.update()
-				
-				logs.write_log('', verbosity = 'DEBUG', comment = 'image cleared...')
-				logs.write_log(self.scribbleArea.modified, verbosity = 'DEBUG', comment = 'self.scribbleArea.modified')
-			else: 
-				pass
+		return self.scribbleArea.saveImage(os.path.join(PATH_TEMP, 
+			str(time.time()) + '.' + FORMAT), FORMAT)
 		
 	def saveFile(self):
 		# opens dialog to save file with selected file type
@@ -253,7 +325,7 @@ class MainWindow(QtGui.QMainWindow):
 		if fileName:
 			return self.scribbleArea.saveImage(fileName, fileFormat)
 		return False
-        
+		
 	def addActions(self):
 		# creates sub menus for Save As...
 		for format in QtGui.QImageWriter.supportedImageFormats():
@@ -271,10 +343,10 @@ class MainWindow(QtGui.QMainWindow):
 		
 	def showHelp(self):
 		# opens help dialog
-		logs.write_log('', verbosity = 'DEBUG', comment = 'help showed...')
+		#logs.write_log('', verbosity = 'DEBUG', comment = 'help showed...')
 		
 		QtGui.QDialog.__init__(self)
-		self.helpForm = uic.loadUi('help.ui')
+		self.helpForm = uic.loadUi(PATH_UI_HELP)
 		self.helpForm.show()
 		
 		self.connect(self.helpForm.btn_back, QtCore.SIGNAL('clicked()'), 
@@ -284,20 +356,20 @@ class MainWindow(QtGui.QMainWindow):
 		self.connect(self.helpForm.tbr_help, QtCore.SIGNAL("sourceChanged(QUrl)"), 
 			self.updatePageTitle)
 			
-		self.helpForm.tbr_help.setSource((QtCore.QUrl.fromLocalFile("../docs/help/index.html")))
+		self.helpForm.tbr_help.setSource((QtCore.QUrl.fromLocalFile(PATH_DOC_HELP))) # "../docs/help/index.html")))
 		
 	def showAbout(self):
 		# opens about dialog
 		QtGui.QMessageBox.about(self, app.translate("wnd_main", "About"), 
-                """<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
-                plugin for sharing your ideas and thoughts with others.</p>
-                
-                <p>It is an open source project; you can always find the latest
-                version of code at <a href="https://github.com/dae-eklen/E-learning">github</a>
-                page.</p> 
-                
-                <p>Current version: 0.0.1</p>
-                """)
+				"""<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
+				plugin for sharing your ideas and thoughts with others.</p>
+				
+				<p>It is an open source project; you can always find the latest
+				version of code at <a href="https://github.com/dae-eklen/E-learning">github</a>
+				page.</p> 
+				
+				<p>Current version: 1.0.0</p>
+				""")
 			
 	def updatePageTitle(self):
 		# used to update label for title (helpForm.lab_title) in help dialog
@@ -311,7 +383,7 @@ class MainWindow(QtGui.QMainWindow):
 			QtGui.QMessageBox.No)
 			
 		if reply == QtGui.QMessageBox.Yes:
-			logs.write_log('', verbosity = 'DEBUG', comment = 'quiting...')
+			#logs.write_log('', verbosity = 'DEBUG', comment = 'quiting...')
 			
 			try:
 				sys.exit(self.helpForm)
@@ -322,11 +394,10 @@ class MainWindow(QtGui.QMainWindow):
 			event.ignore() 
 
 
-if __name__ == "__main__":
-	logs = log.Log(fileName = 'test.log', writeVerbosity = 'DEBUG')
-	logs.write_log('', verbosity = 'DEBUG', comment = 'starting...')
-	
-	app = QtGui.QApplication(sys.argv)
+
+def load_interface():
+	#logs = log.Log(fileName = 'test.log', writeVerbosity = 'DEBUG')
+	#logs.write_log('', verbosity = 'DEBUG', comment = 'starting...')
 	
 	# i18n	
 	translator_my = QtCore.QTranslator()
@@ -344,10 +415,11 @@ if __name__ == "__main__":
 	#translator_help.load('i18n/help_ru_Ru.qm')
 	app.installTranslator(translator_help)
 	
-	logs.write_log(QtCore.QLocale.system().name(), verbosity = 'DEBUG', comment = 'language set...')
+	#logs.write_log(QtCore.QLocale.system().name(), verbosity = 'DEBUG', comment = 'language set...')
 	
 	# show	
 	myApp = MainWindow()
 	myApp.show()
 	
 	sys.exit(app.exec_())
+
