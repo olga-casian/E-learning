@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>wnd_main</class>
+ <widget class="QMainWindow" name="wnd_main">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>298</width>
+    <height>401</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Buddy List</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource/res.qrc">
+    <normaloff>:/icons/icons/logotype.png</normaloff>:/icons/icons/logotype.png</iconset>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout">
+    <item>
+     <widget class="QComboBox" name="cmb_status_box">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <item>
+       <property name="text">
+        <string>Available</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/available.png</normaloff>:/icons/icons/status/available.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Chat</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/chat.png</normaloff>:/icons/icons/status/chat.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Away</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/away.png</normaloff>:/icons/icons/status/away.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Extended away</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/xa.png</normaloff>:/icons/icons/status/xa.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Do not disturb</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/dnd.png</normaloff>:/icons/icons/status/dnd.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Offline</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resource/res.qrc">
+         <normaloff>:/icons/icons/status/offline.png</normaloff>:/icons/icons/status/offline.png</iconset>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="eln_status_edit"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="mbr_menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>298</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="men_contacts">
+    <property name="title">
+     <string>Account</string>
+    </property>
+    <addaction name="act_connection"/>
+    <addaction name="act_deconnection"/>
+    <addaction name="act_quit"/>
+   </widget>
+   <widget class="QMenu" name="men_affichage">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="act_offline_buddies"/>
+    <addaction name="act_away_buddies"/>
+   </widget>
+   <widget class="QMenu" name="men_help">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="act_about_pytalk"/>
+    <addaction name="act_about_qt"/>
+   </widget>
+   <widget class="QMenu" name="men_tools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="act_preferences"/>
+    <addaction name="act_logs"/>
+   </widget>
+   <addaction name="men_contacts"/>
+   <addaction name="men_affichage"/>
+   <addaction name="men_tools"/>
+   <addaction name="men_help"/>
+  </widget>
+  <action name="act_connection">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/log-in.png</normaloff>:/icons/icons/log-in.png</iconset>
+   </property>
+   <property name="text">
+    <string>L&amp;og in</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="act_deconnection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/log-out.png</normaloff>:/icons/icons/log-out.png</iconset>
+   </property>
+   <property name="text">
+    <string>Log out</string>
+   </property>
+  </action>
+  <action name="act_offline_buddies">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Offline buddies</string>
+   </property>
+  </action>
+  <action name="act_away_buddies">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Away buddies</string>
+   </property>
+  </action>
+  <action name="act_about_pytalk">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/about.png</normaloff>:/icons/icons/about.png</iconset>
+   </property>
+   <property name="text">
+    <string>About pyTalk</string>
+   </property>
+  </action>
+  <action name="act_about_qt">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/qt4.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/qt4.png</iconset>
+   </property>
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="act_quit">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/exit.png</normaloff>:/icons/icons/exit.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="act_add_a_buddy">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add a buddy</string>
+   </property>
+  </action>
+  <action name="act_add_a_group">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add a group</string>
+   </property>
+  </action>
+  <action name="act_preferences">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/preferences.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/preferences.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Preferences</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="act_logs">
+   <property name="text">
+    <string>Logs</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="resource/res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -155,8 +155,8 @@
         </property>
         <property name="icon">
          <iconset resource="resource/res.qrc">
-          <normaloff>:/icons/icons/audio_on_act.png</normaloff>
-          <normalon>:/icons/icons/audio_off_act.png</normalon>:/icons/icons/audio_on_act.png</iconset>
+          <normaloff>:/icons/icons/canvas/audio_on.png</normaloff>
+          <normalon>:/icons/icons/canvas/audio_off.png</normalon>:/icons/icons/canvas/audio_on.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -253,6 +253,7 @@
    <addaction name="act_color"/>
    <addaction name="act_width"/>
    <addaction name="separator"/>
+   <addaction name="act_save"/>
    <addaction name="act_add"/>
    <addaction name="act_undo"/>
    <addaction name="separator"/>
@@ -261,7 +262,7 @@
   <action name="act_color">
    <property name="icon">
     <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/color_act.png</normaloff>:/icons/icons/color_act.png</iconset>
+     <normaloff>:/icons/icons/canvas/color.png</normaloff>:/icons/icons/canvas/color.png</iconset>
    </property>
    <property name="text">
     <string>Color</string>
@@ -276,7 +277,7 @@
   <action name="act_width">
    <property name="icon">
     <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/width_act.png</normaloff>:/icons/icons/width_act.png</iconset>
+     <normaloff>:/icons/icons/canvas/width.png</normaloff>:/icons/icons/canvas/width.png</iconset>
    </property>
    <property name="text">
     <string>Width</string>
@@ -291,7 +292,7 @@
   <action name="act_add">
    <property name="icon">
     <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/add_act.png</normaloff>:/icons/icons/add_act.png</iconset>
+     <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
    </property>
    <property name="text">
     <string>Add</string>
@@ -306,7 +307,7 @@
   <action name="act_undo">
    <property name="icon">
     <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/undo_act.png</normaloff>:/icons/icons/undo_act.png</iconset>
+     <normaloff>:/icons/icons/canvas/undo.png</normaloff>:/icons/icons/canvas/undo.png</iconset>
    </property>
    <property name="text">
     <string>Undo</string>
@@ -321,7 +322,7 @@
   <action name="act_clear">
    <property name="icon">
     <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/clear_act.png</normaloff>:/icons/icons/clear_act.png</iconset>
+     <normaloff>:/icons/icons/canvas/clear.png</normaloff>:/icons/icons/canvas/clear.png</iconset>
    </property>
    <property name="text">
     <string>Clear</string>
@@ -352,6 +353,21 @@
   <action name="act_about">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="act_save">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current image   Ctrl+S</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

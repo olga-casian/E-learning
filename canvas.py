@@ -45,21 +45,20 @@ import sip
 sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
-import sys
-import os
 import time
 from PyQt4 import QtCore, QtGui, uic
 
-import log
 from history import Point, History
-import resource.res
+import interface.resource.res
 
 
 FORMAT = 'jpeg'
+import sys
+import os
 PATH_TEMP = os.path.join('.', 'temp')
-PATH_V = os.path.join('.', 'v')
-PATH_UI = os.path.join('.', 'v', 'project.ui')
-PATH_UI_HELP = os.path.join('.', 'v', 'help.ui')
+PATH_V = os.path.join('.', 'interface')
+PATH_UI_CANVAS = os.path.join('.', 'interface', 'ui_canvas.ui')
+PATH_UI_HELP = os.path.join('.', 'interface', 'ui_help.ui')
 PATH_DOC_HELP = os.path.join('.', 'docs', 'help', 'index.html')
 app = QtGui.QApplication(sys.argv)
 
@@ -230,25 +229,22 @@ class ScribbleArea(QtGui.QWidget):
 				self.update()
 				
 				self.history.clear()
-				
-				#logs.write_log('', verbosity = 'DEBUG', comment = 'image cleared...')
-				#logs.write_log(self.scribbleArea.modified, verbosity = 'DEBUG', comment = 'self.scribbleArea.modified')
 			else: 
 				pass
 
 
-class MainWindow(QtGui.QMainWindow):	
+class CanvasWindow(QtGui.QMainWindow):	
 	"""
 	class for loading and extending .ui file generated in Qt Designer;
 	has basic functionality of interface
 	"""
 	def __init__(self, parent=None):
-		super(MainWindow, self).__init__(parent)
+		super(CanvasWindow, self).__init__(parent)
 		
 		self.saveAsActs = []
 		
 		# loading .ui
-		uic.loadUi(PATH_UI, self)		  
+		uic.loadUi(PATH_UI_CANVAS, self)		  
 
 		# ading canvas
 		self.scribbleArea = ScribbleArea(self)
@@ -270,8 +266,6 @@ class MainWindow(QtGui.QMainWindow):
 		# extend menu bar
 		self.addActions()
 		
-		#logs.write_log('', verbosity = 'DEBUG', comment = 'initialization done...')
-		
 	def canvasSession(self):			
 		if self.btn_canvas_session.isChecked():
 			self.btn_canvas_session.setText(app.translate("wnd_main","Canvas session ON"))
@@ -289,7 +283,6 @@ class MainWindow(QtGui.QMainWindow):
 		newColor = QtGui.QColorDialog.getColor(self.scribbleArea.penColor())
 		if newColor.isValid():
 			self.scribbleArea.setPenColor(newColor)
-			#logs.write_log(newColor, verbosity = 'DEBUG', comment = 'new color')
 
 	def penWidth(self):
 		# opens dialog to change pen width
@@ -298,7 +291,6 @@ class MainWindow(QtGui.QMainWindow):
 			self.scribbleArea.penWidth(), 1, 50, 1)
 		if ok:
 			self.scribbleArea.setPenWidth(newWidth)
-			#logs.write_log(newWidth, verbosity = 'DEBUG', comment = 'new width')
 			
 	def undo(self):
 		if not self.scribbleArea.history.removeLast(): print 'empty history'
@@ -342,9 +334,7 @@ class MainWindow(QtGui.QMainWindow):
 			self.act_saveas.addAction(action)
 		
 	def showHelp(self):
-		# opens help dialog
-		#logs.write_log('', verbosity = 'DEBUG', comment = 'help showed...')
-		
+		# opens help dialog		
 		QtGui.QDialog.__init__(self)
 		self.helpForm = uic.loadUi(PATH_UI_HELP)
 		self.helpForm.show()
@@ -382,9 +372,7 @@ class MainWindow(QtGui.QMainWindow):
 			QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
 			QtGui.QMessageBox.No)
 			
-		if reply == QtGui.QMessageBox.Yes:
-			#logs.write_log('', verbosity = 'DEBUG', comment = 'quiting...')
-			
+		if reply == QtGui.QMessageBox.Yes:			
 			try:
 				sys.exit(self.helpForm)
 			except AttributeError:
@@ -395,10 +383,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 
-def load_interface():
-	#logs = log.Log(fileName = 'test.log', writeVerbosity = 'DEBUG')
-	#logs.write_log('', verbosity = 'DEBUG', comment = 'starting...')
-	
+def load_interface():	
 	# i18n	
 	translator_my = QtCore.QTranslator()
 	translator_my.load('i18n/i18n_' + QtCore.QLocale.system().name() + '.qm')
@@ -414,11 +399,9 @@ def load_interface():
 	translator_help.load('i18n/help_' + QtCore.QLocale.system().name() + '.qm')	
 	#translator_help.load('i18n/help_ru_Ru.qm')
 	app.installTranslator(translator_help)
-	
-	#logs.write_log(QtCore.QLocale.system().name(), verbosity = 'DEBUG', comment = 'language set...')
-	
+		
 	# show	
-	myApp = MainWindow()
+	myApp = CanvasWindow()
 	myApp.show()
 	
 	sys.exit(app.exec_())

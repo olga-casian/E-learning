@@ -1,0 +1,30 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/logotype.png</file>
+    <file>icons/about.png</file>
+    <file>icons/exit.png</file>
+    <file>icons/log-in.png</file>
+    <file>icons/log-out.png</file>
+    <file>icons/plus.png</file>
+    <file>icons/preferences.png</file>
+    <file>icons/send-mail.png</file>
+    
+    <file>icons/canvas/add.png</file>
+    <file>icons/canvas/audio_off.png</file>
+    <file>icons/canvas/audio_on.png</file>
+    <file>icons/canvas/clear.png</file>
+    <file>icons/canvas/undo.png</file>
+    <file>icons/canvas/width.png</file>
+    <file>icons/canvas/color.png</file>
+    
+    <file>icons/help/back.png</file>
+    <file>icons/help/home.png</file>
+    
+    <file>icons/status/away.png</file>
+    <file>icons/status/available.png</file>
+    <file>icons/status/dnd.png</file>
+    <file>icons/status/chat.png</file>
+    <file>icons/status/xa.png</file>
+    <file>icons/status/offline.png</file>
+  </qresource>
+</RCC>

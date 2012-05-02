@@ -31,6 +31,10 @@ horizontalSpacer -> hsr
 verticalSpacer -> vsr
 
 MainWindow -> main_wnd
+dialog -> dlg
+dialog button box -> dbb
+group box -> gpb
+widget -> wgt
 
 
 -----CODE-----
