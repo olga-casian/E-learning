@@ -24,6 +24,8 @@ class MainWindow(QMainWindow):
 		#QMainWindow.__init__(self, None, Qt.WindowStaysOnTopHint) # always on top
 		super(MainWindow, self).__init__(parent)
 		
+		self.settings = QSettings("Dae-ekleN", "PyTalk")
+		
 		# add logs widget		
 		QWidget.__init__(self)
 		self.logsWidget = uic.loadUi(PATH_UI_LOGS)
@@ -76,7 +78,6 @@ class MainWindow(QMainWindow):
 		self.connectionDialog.show()
 		self.connect(self.connectionDialog, SIGNAL("accepted()"), self.connection)
 		
-		self.settings = QSettings("Dae-ekleN", "PyTalk")
 		self.connectionDialog.eln_jid.setText(self.settings.value("jid", ""))
 		self.connectionDialog.eln_pass.setText(self.settings.value("password", ""))
 
@@ -99,7 +100,7 @@ class MainWindow(QMainWindow):
 		self.settings.setValue("password", self.connectionDialog.eln_pass.text())
 			
 		# latest status and show
-		self.settings.beginGroup(self.settings.value("jid"))
+		self.settings.beginGroup(self.settings.value(self.connectionDialog.eln_jid.text()))
 		self.latestShow = self.settings.value("latestShow", "") # text as in SHOW
 		self.latestStatus = self.settings.value("latestStatus", "")
 		self.settings.endGroup()		
@@ -123,6 +124,10 @@ class MainWindow(QMainWindow):
         
 		# construct contact list	
 		self.BuddyList.setConnection(self.im)
+		#store roster in settings
+		self.settings.beginGroup(self.settings.value(self.im.jabberID))
+		self.settings.setValue("roster", roster_keys)
+		self.settings.endGroup()
 		self.BuddyList.constructList(roster_keys)
 		self.showAwayBuddies()
 		self.showOfflineBuddies()
@@ -140,7 +145,7 @@ class MainWindow(QMainWindow):
 	def statusUpdate(self):
 		# update settings
 		self.settings = QSettings("Dae-ekleN", "PyTalk")
-		self.settings.beginGroup(self.settings.value("jid"))
+		self.settings.beginGroup(self.settings.value(self.im.jabberID))
 		self.settings.setValue("latestShow", SHOW[self.cmb_status_box.currentIndex()])
 		self.settings.setValue("latestStatus", self.eln_status_edit.text())
 		self.settings.endGroup()
@@ -148,11 +153,6 @@ class MainWindow(QMainWindow):
 			"'; status: '" + self.eln_status_edit.text() + "'\n\n")
 		
 		self.im.changeStatus(self.cmb_status_box.currentIndex(), self.eln_status_edit.text())
-		
-	def getRoster(self):
-		roster = self.im.getRoster()
-		for buddy in roster:
-			self.BuddyList.addItem(buddy)
             
 	def showLogs(self):
 		self.logsWidget.show()
