@@ -1,6 +1,6 @@
 from PyQt4.QtGui import QWidget, QTextEdit, QVBoxLayout, QTreeWidget
-from PyQt4.QtCore import SIGNAL, QSize
-from PyQt4 import QtGui
+from PyQt4.QtCore import SIGNAL, QSize, Qt
+from PyQt4 import QtGui, QtCore
 from PyQt4 import uic
 import md5, webbrowser
 import datetime
@@ -26,21 +26,21 @@ class MessageTextEdit(QTextEdit):
 		
 
 class MessageDialog(QWidget):	
-	def __init__(self, con, jidTo, nameTo, parent=None):
+	def __init__(self, con, jidTo, buddyList, parent=None):
 		super(MessageDialog, self).__init__(parent)
 		
 		self.jidTo = []
-		self.nameTo = []
+		self.initialJidTo = []
+		#self.nameTo = []
 		self.jidTo.append(jidTo)
-		self.nameTo.append(nameTo)
+		#self.nameTo.append(nameTo)
+		self.initialJidTo.append(jidTo)
 		self.con = con
+		self.buddyList = buddyList
 		
 		# loading .ui
 		uic.loadUi(PATH_UI_MESSAGE, self)
-		if len(self.nameTo) is 1:
-			self.setWindowTitle("Chat with " + self.nameTo[0])
-		else:
-			self.setWindowTitle("Group chat (" + len(self.nameTo) + ")")
+		self.updateDialog()
 		self.btn_update.hide()
 		self.chb_members.hide()
 		
@@ -59,11 +59,31 @@ class MessageDialog(QWidget):
 		self.showMembersBuddies(True)
 
 		self.connect(self.tbr_browser, SIGNAL("anchorClicked(QUrl)"), self.openLink)
-		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembers)
-		
+		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembersLayout)		
 		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)
+		self.connect(self.btn_update, SIGNAL("clicked()"), self.chatMembers.updateMembers)	
 		
-	def showMembers(self, checked):
+	def updateDialog(self):
+		if len(self.jidTo) is 1:
+			if self.initialJidTo == self.jidTo: # if person is the same
+				self.setWindowTitle("Chat with " + self.con.getName(self.jidTo[0]))
+			else:
+				for child in self.chatMembers.buddies.values():
+					if child.jid in self.initialJidTo: # new person found in roster
+						child.setState(Qt.Checked)
+						self.showMembersBuddies(True)						
+					elif child.jid in self.jidTo: # old
+						child.setState(Qt.Unchecked)
+						self.showMembersBuddies(True)
+					else:
+						child.setState(Qt.Unchecked)						
+				self.close()
+				self.buddyList.newDialog(self.jidTo)
+				self.jidTo[0] = self.initialJidTo[0] 
+		else:
+			self.setWindowTitle("Group chat (" + str(len(self.jidTo)) + ")")
+		
+	def showMembersLayout(self, checked):
 		if checked:
 			self.chatMembers.show()
 			self.btn_update.show()

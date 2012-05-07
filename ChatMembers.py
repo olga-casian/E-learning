@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QSettings, QSize
+from PyQt4.QtCore import QSettings, QSize, Qt, SIGNAL
 
 from ChatMembersItem import ChatMembersItem
 from AbstractContactList import AbstractContactList
@@ -14,6 +14,18 @@ class ChatMembers(AbstractContactList):
 		self.parent = parent
 		self.members = True
 	
+	def updateMembers(self):
+		for child in self.buddies.values():
+			if child.checkIfMember() == 2 and child.jid not in self.parent.jidTo:
+				self.parent.jidTo.append(child.jid)
+				name = self.connection.getName(child.jid)
+				#self.parent.nameTo.append(name)
+			if child.checkIfMember() == 0 and child.jid in self.parent.jidTo:
+				self.parent.jidTo.remove(child.jid)
+				name = self.connection.getName(child.jid)
+				#self.parent.nameTo.remove(name)
+		self.parent.updateDialog()
+	
 	def constructList(self):
 		self.settings = QSettings("Dae-ekleN", "PyTalk")
 		self.settings.beginGroup(self.settings.value(self.connection.jabberID))
@@ -26,11 +38,13 @@ class ChatMembers(AbstractContactList):
 				self.addGroup(group)
 				if jid not in self.buddies.keys():
 					show = self.connection.getShow(jid)
-					self.buddies[jid] = ChatMembersItem(self.groups[group], jid, show, self.connection)
+					if jid in self.parent.jidTo:
+						self.buddies[jid] = ChatMembersItem(self.groups[group], jid, show, self.connection, Qt.Checked)
+					else:
+						self.buddies[jid] = ChatMembersItem(self.groups[group], jid, show, self.connection, Qt.Unchecked)
 					self.buddies[jid].setName(self.connection.getName(jid))
 				self.groups[group].addChild(self.buddies[jid])
 				self.tree[group][jid] = self.buddies[jid]
-		#self.expandAll()
 
 	def showMembersBuddies(self, hide):
 		self.members = hide

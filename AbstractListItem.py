@@ -11,18 +11,12 @@ class AbstractListItem(QTreeWidgetItem):
 		self.parent = parent
 		self.jid = jid
 		self.name = jid
-		self.setStatus(show)
 		self.connection = con
 		
 	def setName(self, name):
 		if name:
 			self.name = name
 			self.setText(0, name)
-
-	def setStatus(self, show):
-		self.show = show
-		fileShow = "interface/resource/icons/status/" + str(self.show) + ".png"
-		self.setIcon(0, QIcon(fileShow))
 		
 	def status(self):
 		return status

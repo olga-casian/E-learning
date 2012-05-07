@@ -33,7 +33,7 @@ class BuddyList(AbstractContactList):
 				self.addGroup(group)
 				if jid not in self.buddies.keys():
 					show = self.connection.getShow(jid)
-					self.buddies[jid] = BuddyItem(self.groups[group], jid, show, self.connection)
+					self.buddies[jid] = BuddyItem(self, self.groups[group], jid, show, self.connection)
 					self.buddies[jid].setName(self.connection.getName(jid))
 				self.groups[group].addChild(self.buddies[jid])
 				self.tree[group][jid] = self.buddies[jid]
@@ -41,6 +41,11 @@ class BuddyList(AbstractContactList):
 	def sendMessage(self, item, col):
 		if item and item.type() == QTreeWidgetItem.UserType + 1:
 			item.createMsgDialog()
+			
+	def newDialog(self, jidTo):
+		for child in self.buddies.values():
+			if child.jid == jidTo[0]:
+				child.createMsgDialog()		
 			
 	def showOfflineBuddies(self, hide):
 		self.offline = hide

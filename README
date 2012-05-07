@@ -1,5 +1,5 @@
-XMPP client implemented in Python with PyQt interface that is based on PyTalk.
-It uses sleekxmpp library for the protocol.
+XMPP client implemented in Python with PyQt interface that is based on **PyTalk** ([[github page|https://github.com/Natim/PyTalk]]).
+It uses **sleekxmpp** library for the protocol, see their [[website|http://sleekxmpp.com/]] and [[github page|https://github.com/fritzy/SleekXMPP/wiki]].
 
 
 Dependencies:

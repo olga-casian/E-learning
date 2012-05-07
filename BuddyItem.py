@@ -14,15 +14,23 @@ class BuddyItem(AbstractListItem):
 	dialog = None
 	msg = None
 
-	def __init__(self, parent, jid, show, con):
+	def __init__(self, buddyList, parent, jid, show, con):
 		AbstractListItem.__init__(self, parent, jid, show, con)
+		
+		self.buddyList = buddyList
+		self.setStatus(show)
+		
+	def setStatus(self, show):
+		self.show = show
+		fileShow = "interface/resource/icons/status/" + str(self.show) + ".png"
+		self.setIcon(0, QIcon(fileShow))
 
 	def createMsgDialog(self):
 		try:
 			self.messageDialog.show()
 			self.messageDialog.raise_()
 		except:
-			self.messageDialog = MessageDialog(self.connection, self.jid, self.name)
+			self.messageDialog = MessageDialog(self.connection, self.jid, self.buddyList)
 			self.messageDialog.show()
 			self.messageDialog.raise_()
 
