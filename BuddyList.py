@@ -1,9 +1,10 @@
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QMenu, QIcon
+from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem
 from PyQt4.QtCore import Qt, SIGNAL
-import time
+import time, re
 
 from BuddyItem import BuddyItem
 from AbstractContactList import AbstractContactList
+from MUCItem import MUCItem
 
 
 class BuddyList(AbstractContactList):
@@ -42,10 +43,43 @@ class BuddyList(AbstractContactList):
 		if item and item.type() == QTreeWidgetItem.UserType + 1:
 			item.createMsgDialog()
 			
-	def newDialog(self, jidTo):
+	def newDialog(self, jid):
 		for child in self.buddies.values():
-			if child.jid == jidTo[0]:
-				child.createMsgDialog()		
+			if child.jid == jid:
+				child.createMsgDialog()
+
+	def newListItem(self, jid):
+		group = "Multi-User Chats"
+		#if str(jid) not in self.muc.keys():
+		if not self.MUCExists(jid):
+			self.addGroup(group)
+			self.muc[str(jid)] = MUCItem(self, self.groups[group], jid, "-", self.connection)
+			
+			titleMUC = "Group chat (" + str(len(jid)) + ")"
+			self.muc[str(jid)].setName(titleMUC)
+			
+			self.groups[group].addChild(self.muc[str(jid)])
+			self.tree[group][str(jid)] = self.muc[str(jid)]
+			
+	def MUCExists(self, jidList):
+		# True - muc exists, False - doesn't
+		match = 0
+		emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+		for keyStr in self.muc.keys():
+			keyList = re.findall(emailPattern, keyStr)
+			match = 0
+			for key in keyList:
+				for jid in jidList:
+					if str(jid) == str(key):
+						match = match + 1
+				if len(jidList) == match ==len(keyList):
+					return True
+		return False
+
+	def newMUC(self, jidTo):
+		for child in self.muc.values():
+			if child.jid == jidTo:
+				child.createMsgDialog()
 			
 	def showOfflineBuddies(self, hide):
 		self.offline = hide

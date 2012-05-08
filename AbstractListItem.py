@@ -1,13 +1,13 @@
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QDialog, QVBoxLayout, QApplication, QMenu
-from PyQt4.QtCore import Qt, QSettings
+from PyQt4.QtGui import QTreeWidgetItem
+from PyQt4.QtCore import Qt
 
 
 class AbstractListItem(QTreeWidgetItem):
 	def __init__(self, parent, jid, show, con):
-		QTreeWidgetItem.__init__(self, parent, [jid], QTreeWidgetItem.UserType+1)
+		QTreeWidgetItem.__init__(self, parent, jid, QTreeWidgetItem.UserType + 1)
 
 		# QTreeWidgetItem configuration
-		self.setFlags(Qt.ItemIsDragEnabled | Qt.ItemIsEnabled) # we can move a contact
+		#self.setFlags(Qt.ItemIsDragEnabled | Qt.ItemIsEnabled) # we can move a contact
 		self.parent = parent
 		self.jid = jid
 		self.name = jid
@@ -22,4 +22,4 @@ class AbstractListItem(QTreeWidgetItem):
 		return status
 		
 	def __str__(self):
-		return u'%s' % self.name
+		return self.name

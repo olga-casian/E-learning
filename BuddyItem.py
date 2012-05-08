@@ -1,5 +1,4 @@
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QDialog, QVBoxLayout, QApplication, QMenu
-from PyQt4.QtCore import Qt, QSettings
+from PyQt4.QtGui import QIcon, QTreeWidgetItem
 
 from MessageDialog import MessageDialog
 from AbstractListItem import AbstractListItem
@@ -19,6 +18,12 @@ class BuddyItem(AbstractListItem):
 		
 		self.buddyList = buddyList
 		self.setStatus(show)
+		
+		name = self.connection.getName(self.jid)
+		if name is not self.jid:
+			toolTip = name + " <" + str(self.jid) + ">"
+		else: toolTip = "<" + str(self.jid) + ">"
+		self.setToolTip(0, toolTip)
 		
 	def setStatus(self, show):
 		self.show = show

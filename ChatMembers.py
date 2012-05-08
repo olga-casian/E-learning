@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QSettings, QSize, Qt, SIGNAL
+from PyQt4.QtCore import QSettings, Qt
 
 from ChatMembersItem import ChatMembersItem
 from AbstractContactList import AbstractContactList
@@ -18,21 +18,14 @@ class ChatMembers(AbstractContactList):
 		for child in self.buddies.values():
 			if child.checkIfMember() == 2 and child.jid not in self.parent.jidTo:
 				self.parent.jidTo.append(child.jid)
-				name = self.connection.getName(child.jid)
-				#self.parent.nameTo.append(name)
 			if child.checkIfMember() == 0 and child.jid in self.parent.jidTo:
 				self.parent.jidTo.remove(child.jid)
-				name = self.connection.getName(child.jid)
-				#self.parent.nameTo.remove(name)
 		self.parent.updateDialog()
+		self.hideGroups()
 	
-	def constructList(self):
-		self.settings = QSettings("Dae-ekleN", "PyTalk")
-		self.settings.beginGroup(self.settings.value(self.connection.jabberID))
-		self.rosterKeys = self.settings.value("roster", "")
-		self.settings.endGroup()
-		
-		for jid in self.rosterKeys:
+	def constructMessageList(self):
+		rosterKeys = self.getRosterKeys()		
+		for jid in rosterKeys:
 			if self.connection:
 				group = self.connection.getGroups(jid)[0]
 				self.addGroup(group)
@@ -45,6 +38,30 @@ class ChatMembers(AbstractContactList):
 					self.buddies[jid].setName(self.connection.getName(jid))
 				self.groups[group].addChild(self.buddies[jid])
 				self.tree[group][jid] = self.buddies[jid]
+				
+	def constructMUCList(self):
+		rosterKeys = self.getRosterKeys()		
+		for jid in rosterKeys:
+			if self.connection:
+				group = self.connection.getGroups(jid)[0]
+				self.addGroup(group)
+				if jid not in self.buddies.keys():
+					show = self.connection.getShow(jid)
+					if jid in self.parent.jidTo:
+						self.buddies[jid] = ChatMembersItem(self.groups[group], jid, show, self.connection, Qt.Checked)
+					else:
+						self.buddies[jid] = ChatMembersItem(self.groups[group], jid, show, self.connection, Qt.Unchecked)
+					self.buddies[jid].setName(self.connection.getName(jid))
+				self.groups[group].addChild(self.buddies[jid])
+				self.tree[group][jid] = self.buddies[jid]
+		self.parent.buddyList.expandAll()
+		
+	def getRosterKeys(self):
+		self.settings = QSettings("Dae-ekleN", "PyTalk")
+		self.settings.beginGroup(self.settings.value(self.connection.jabberID))
+		rosterKeys = self.settings.value("roster", "")
+		self.settings.endGroup()
+		return rosterKeys	
 
 	def showMembersBuddies(self, hide):
 		self.members = hide

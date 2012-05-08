@@ -9,7 +9,12 @@ class ChatMembersItem(AbstractListItem):
 		
 		self.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
 		self.setState(member)
-		self.setToolTip(2, self.name + " <" + self.jid + ">")
+		
+		name = self.connection.getName(self.jid)
+		if name is not self.jid:
+			toolTip = name + " <" + str(self.jid) + ">"
+		else: toolTip = "<" + str(self.jid) + ">"
+		self.setToolTip(0, toolTip)
 		
 	def checkIfMember(self):
 		# returns: 2 - checked; 0 - unchecked

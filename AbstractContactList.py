@@ -1,5 +1,5 @@
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QMenu, QIcon
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import QTreeWidget
+from PyQt4.QtCore import Qt
 
 from BuddyGroup import BuddyGroup
 
@@ -13,6 +13,7 @@ class AbstractContactList(QTreeWidget):
 		self.setSortingEnabled(True)
 		self.sortItems(0, Qt.AscendingOrder)
 		self.buddies = {}
+		self.muc = {}
 		self.groups = {}
 		self.tree = {}
 		
@@ -35,5 +36,5 @@ class AbstractContactList(QTreeWidget):
 			try:
 				self.buddies[str(jid)].setStatus(show)
 				self.hideGroups()
-			except:
-				print "exception !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+			except: 
+				pass

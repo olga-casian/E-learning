@@ -36,8 +36,8 @@ class Client(QThread):
 	def handleXMPPConnected(self, event): 
 		# session_start
 		self.xmpp.sendPresence(pstatus = self.status, pshow = self.show)
-		self.emit(SIGNAL("debug"), "initial presence sent. show: '" + unicode(self.show) + 
-			"'; status: '" + unicode(self.status) + "'\n\n")
+		self.emit(SIGNAL("debug"), "initial presence sent. show: '" + self.show + 
+			"'; status: '" + self.status + "'\n\n")
 		
 		try:
 			self.xmpp.get_roster()
@@ -58,7 +58,7 @@ class Client(QThread):
 			self.emit(SIGNAL("message"), (message["from"].bare, message["body"]))
 		
 	def send_message(self, tojid, message):
-		self.xmpp.sendMessage(mto = tojid, mbody = unicode(message), mtype='chat')
+		self.xmpp.sendMessage(mto = tojid, mbody = message, mtype='chat')
 		self.emit(SIGNAL("debug"), "message to " + tojid + ":\n" + message + "\n\n")
 	
 	def handleStatusChanged(self, presence):
@@ -97,10 +97,12 @@ class Client(QThread):
 			return "offline"
 		
 	def getName(self, jid):
-		return self.xmpp.client_roster[jid]["name"]
+		if self.xmpp.client_roster[jid]["name"] is not "":
+			return self.xmpp.client_roster[jid]["name"]
+		else: return jid
 		
 	def changeStatus(self, show = "", status = ""):
 		# send a presence packet
 		self.xmpp.send_presence(pshow=SHOW[show], pstatus=status)
-		self.emit(SIGNAL("debug"), "updated presence sent. show: '" + unicode(SHOW[show]) + 
-			"'; status: '" + unicode(status) + "'\n\n")
+		self.emit(SIGNAL("debug"), "updated presence sent. show: '" + SHOW[show] + 
+			"'; status: '" + status + "'\n\n")

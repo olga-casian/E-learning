@@ -134,7 +134,6 @@ class MainWindow(QMainWindow):
 	
 		# restore show and status
 		self.eln_status_edit.show()
-		#self.eln_status_edit.setFocus()
 		self.eln_status_edit.setText(self.latestStatus)
 		
 		self.cmb_status_box.setItemText(5, "Offline")
@@ -169,7 +168,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
 	# Setup logging
-	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
+	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()
