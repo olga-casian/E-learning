@@ -95,15 +95,16 @@ class MainWindow(QMainWindow):
 
 	def connection(self):		
 		# settings for jid and pass
-		self.settings = QSettings("Dae-ekleN", "PyTalk")
+		#self.settings = QSettings("Dae-ekleN", "PyTalk")
 		self.settings.setValue("jid", self.connectionDialog.eln_jid.text())
 		self.settings.setValue("password", self.connectionDialog.eln_pass.text())
 			
 		# latest status and show
-		self.settings.beginGroup(self.settings.value(self.connectionDialog.eln_jid.text()))
+		self.clientJid = str(self.connectionDialog.eln_jid.text())
+		self.settings.beginGroup(self.clientJid)
 		self.latestShow = self.settings.value("latestShow", "") # text as in SHOW
 		self.latestStatus = self.settings.value("latestStatus", "")
-		self.settings.endGroup()		
+		self.settings.endGroup()
 			
 		# starting xmpp thread
 		self.im = Client(self.connectionDialog.eln_jid.text(), self.connectionDialog.eln_pass.text(),
@@ -125,7 +126,7 @@ class MainWindow(QMainWindow):
 		# construct contact list	
 		self.BuddyList.setConnection(self.im)
 		#store roster in settings
-		self.settings.beginGroup(self.settings.value(self.im.jabberID))
+		self.settings.beginGroup(self.clientJid)
 		self.settings.setValue("roster", roster_keys)
 		self.settings.endGroup()
 		self.BuddyList.constructList(roster_keys)
@@ -143,8 +144,7 @@ class MainWindow(QMainWindow):
 	
 	def statusUpdate(self):
 		# update settings
-		self.settings = QSettings("Dae-ekleN", "PyTalk")
-		self.settings.beginGroup(self.settings.value(self.im.jabberID))
+		self.settings.beginGroup(self.clientJid)
 		self.settings.setValue("latestShow", SHOW[self.cmb_status_box.currentIndex()])
 		self.settings.setValue("latestStatus", self.eln_status_edit.text())
 		self.settings.endGroup()

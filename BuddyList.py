@@ -1,5 +1,5 @@
 from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL, QSettings
 import time, re
 
 from BuddyItem import BuddyItem
@@ -15,8 +15,9 @@ class BuddyList(AbstractContactList):
 		
 		self.setContextMenuPolicy(Qt.CustomContextMenu)
 		self.menu = QMenu()
-		self.menu.addAction(QIcon("images/rename.png"), "Rename", self.rename)
-		self.menu.addAction(QIcon("images/infos.png"), "User Infos", self.getInfo)
+		self.menu.addAction(QIcon("images/rename.png"), "Remove", self.remove)
+		#self.menu.addAction(QIcon("images/rename.png"), "Rename", self.rename)
+		#self.menu.addAction(QIcon("images/infos.png"), "User Infos", self.getInfo)
 		
 		self.connect(self, SIGNAL("customContextMenuRequested(QPoint)"), self.context)
 		self.connect(self, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.sendMessage)
@@ -38,6 +39,60 @@ class BuddyList(AbstractContactList):
 					self.buddies[jid].setName(self.connection.getName(jid))
 				self.groups[group].addChild(self.buddies[jid])
 				self.tree[group][jid] = self.buddies[jid]
+		self.constructMUC()
+		
+	def remove(self):
+		if type(self.currentItem) is MUCItem:
+			match = 0
+			emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+			for keyStr in self.muc.keys():
+				keyList = re.findall(emailPattern, keyStr)
+				match = 0
+				for key in keyList:
+					for jid in self.currentItem.jid:
+						if str(jid) == str(key):
+							match = match + 1
+					if len(self.currentItem.jid) == match ==len(keyList):
+						# make elements unicode
+						for n in range(len(keyList)): keyList[n] = unicode(keyList[n])			
+						
+						group = "Multi-User Chats"
+						self.groups[group].removeChild(self.muc[str(keyList)])
+						del self.muc[str(keyList)]
+						del self.tree[group][str(keyList)]
+						
+						if len(self.tree[group].keys()) is 0:
+							self.removeGroup(group)
+						
+						self.updateSettingsMUC()
+				
+	def constructMUC(self):
+		# get MUC from settings
+		self.settings = QSettings("Dae-ekleN", "PyTalk")
+		self.settings.beginGroup(self.connection.jabberID)
+		mucs = self.settings.value("MUC", "")
+		self.settings.endGroup()
+		
+		if mucs is not None:		
+			group = "Multi-User Chats"
+			self.addGroup(group)
+			
+			# muc from settings to list		
+			emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+			for muc in mucs:
+				jidsFromOneMUC = re.findall(emailPattern, muc)
+
+				# make elements unicode
+				for n in range(len(jidsFromOneMUC)): jidsFromOneMUC[n] = unicode(jidsFromOneMUC[n])
+					
+				# add MUC item to list
+				self.muc[str(jidsFromOneMUC)] = MUCItem(self, self.groups[group], jidsFromOneMUC, "-", self.connection)
+				
+				titleMUC = "Group chat (" + str(len(jidsFromOneMUC)) + ")"
+				self.muc[str(jidsFromOneMUC)].setName(titleMUC)
+				
+				self.groups[group].addChild(self.muc[str(jidsFromOneMUC)])
+				self.tree[group][str(jidsFromOneMUC)] = self.muc[str(jidsFromOneMUC)]
 				
 	def sendMessage(self, item, col):
 		if item and item.type() == QTreeWidgetItem.UserType + 1:
@@ -48,11 +103,14 @@ class BuddyList(AbstractContactList):
 			if child.jid == jid:
 				child.createMsgDialog()
 
-	def newListItem(self, jid):
+	def newMUCItem(self, jid):
 		group = "Multi-User Chats"
-		#if str(jid) not in self.muc.keys():
 		if not self.MUCExists(jid):
 			self.addGroup(group)
+				
+			# make elements unicode
+			for n in range(len(jid)): jid[n] = unicode(jid[n])
+			
 			self.muc[str(jid)] = MUCItem(self, self.groups[group], jid, "-", self.connection)
 			
 			titleMUC = "Group chat (" + str(len(jid)) + ")"
@@ -60,6 +118,14 @@ class BuddyList(AbstractContactList):
 			
 			self.groups[group].addChild(self.muc[str(jid)])
 			self.tree[group][str(jid)] = self.muc[str(jid)]
+			
+			self.updateSettingsMUC()
+			
+	def updateSettingsMUC(self):
+		self.settings = QSettings("Dae-ekleN", "PyTalk")
+		self.settings.beginGroup(self.connection.jabberID)
+		self.settings.setValue("MUC", self.muc.keys())
+		self.settings.endGroup()
 			
 	def MUCExists(self, jidList):
 		# True - muc exists, False - doesn't
@@ -76,7 +142,7 @@ class BuddyList(AbstractContactList):
 					return True
 		return False
 
-	def newMUC(self, jidTo):
+	def newMUCDialog(self, jidTo):
 		for child in self.muc.values():
 			if child.jid == jidTo:
 				child.createMsgDialog()
@@ -118,9 +184,10 @@ class BuddyList(AbstractContactList):
 			if item.type() == QTreeWidgetItem.UserType+1:
 				self.currentItem = item
 				self.menu.popup(self.mapToGlobal(pos))
-		
+	"""	
 	def rename(self):
 		self.emit(SIGNAL("rename"), self.currentItem)
 
 	def getInfo(self):
 		pass
+	"""

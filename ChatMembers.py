@@ -58,7 +58,7 @@ class ChatMembers(AbstractContactList):
 		
 	def getRosterKeys(self):
 		self.settings = QSettings("Dae-ekleN", "PyTalk")
-		self.settings.beginGroup(self.settings.value(self.connection.jabberID))
+		self.settings.beginGroup(self.connection.jabberID)
 		rosterKeys = self.settings.value("roster", "")
 		self.settings.endGroup()
 		return rosterKeys	

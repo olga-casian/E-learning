@@ -92,8 +92,8 @@ class AbstractDialog(QWidget):
 				initialJid = self.setCheckboxes()
 				self.close()
 				
-				self.buddyList.newListItem(self.jidTo)
-				self.buddyList.newMUC(self.jidTo)
+				self.buddyList.newMUCItem(self.jidTo)
+				self.buddyList.newMUCDialog(self.jidTo)
 				
 				# restore initial jidTo
 				self.jidTo = []

@@ -23,12 +23,21 @@ class AbstractContactList(QTreeWidget):
 	def setConnection(self, con):
 		self.connection = con
 		
-	def addGroup(self, group):
+	def addGroup(self, group):		
 		if group:
 			if group not in self.groups.keys():
 				self.groups[group] = BuddyGroup(group)
 				self.tree[group] = {}
 				self.addTopLevelItem(self.groups[group])
+				
+	def removeGroup(self, group, ind = None):
+		for (index, d) in enumerate(self.groups):
+			if d == group:
+				ind = index
+				
+		if group:
+			self.takeTopLevelItem(ind)
+			del self.groups[group]
 	
 	def presence(self, data):
 		jid, show = data
