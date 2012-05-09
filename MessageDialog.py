@@ -18,5 +18,5 @@ class MessageDialog(AbstractDialog):
 		time = str(datetime.datetime.now().strftime("%H:%M:%S"))
 		message = """\n<span style="color: darkred">[%s] <strong>%s:</strong></span> %s""" % (time, self.tr("Me"), text)
 		self.tbr_browser.append(message)
-		self.con.send_message(self.jidTo[0], text)
+		self.con.sendMessage(self.jidTo[0], text)
 		self.messageTextEdit.clear()

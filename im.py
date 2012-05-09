@@ -18,6 +18,7 @@ class Client(QThread):
 		self.xmpp.add_event_handler("message", self.handleIncomingMessage)
 		self.xmpp.add_event_handler("changed_status", self.handleStatusChanged)
 		self.xmpp.add_event_handler("got_offline", self.handleGotOffline)
+		self.xmpp.add_event_handler("groupchat_message", self.handleGroupchatMessage)
 		
 		self.received = set()
 		self.presences_received = threading.Event()
@@ -51,15 +52,21 @@ class Client(QThread):
 			
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
 
+	def handleGroupchatMessage(self):
+		pass
+
 	def handleIncomingMessage(self, message): 
 		# message
 		if message['type'] in ('normal', 'chat'):
 			self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
 			self.emit(SIGNAL("message"), (message["from"].bare, message["body"]))
 		
-	def send_message(self, tojid, message):
+	def sendMessage(self, tojid, message):
 		self.xmpp.sendMessage(mto = tojid, mbody = message, mtype='chat')
 		self.emit(SIGNAL("debug"), "message to " + tojid + ":\n" + message + "\n\n")
+		
+	def sendMUCMessage(self, jids, message):
+		pass
 	
 	def handleStatusChanged(self, presence):
 		# changed_status
