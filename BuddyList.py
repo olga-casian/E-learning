@@ -2,6 +2,7 @@ from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem
 from PyQt4.QtCore import Qt, SIGNAL, QSettings
 import time, re
 
+from constants import MUC_GROUP_TITLE
 from BuddyItem import BuddyItem
 from AbstractContactList import AbstractContactList
 from MUCItem import MUCItem
@@ -54,17 +55,19 @@ class BuddyList(AbstractContactList):
 							match = match + 1
 					if len(self.currentItem.jid) == match ==len(keyList):
 						# make elements unicode
-						for n in range(len(keyList)): keyList[n] = unicode(keyList[n])			
+						for n in range(len(keyList)): keyList[n] = unicode(keyList[n])
 						
-						group = "Multi-User Chats"
-						self.groups[group].removeChild(self.muc[str(keyList)])
-						del self.muc[str(keyList)]
-						del self.tree[group][str(keyList)]
+						del self.tree[MUC_GROUP_TITLE][str(keyList)]						
+						self.groups[MUC_GROUP_TITLE].removeChild(self.muc[str(keyList)])
+						#self.emit(SIGNAL("closeMUC"))
 						
-						if len(self.tree[group].keys()) is 0:
-							self.removeGroup(group)
-						
+						if len(self.tree[MUC_GROUP_TITLE].keys()) is 0:							
+							self.removeGroup(MUC_GROUP_TITLE)
+							del self.tree[MUC_GROUP_TITLE]
+							
+						del self.muc[str(keyList)]												
 						self.updateSettingsMUC()
+						self.hideGroups()
 				
 	def constructMUC(self):
 		# get MUC from settings
@@ -73,9 +76,8 @@ class BuddyList(AbstractContactList):
 		mucs = self.settings.value("MUC", "")
 		self.settings.endGroup()
 		
-		if mucs is not None:		
-			group = "Multi-User Chats"
-			self.addGroup(group)
+		if mucs is not None:
+			self.addGroup(MUC_GROUP_TITLE)
 			
 			# muc from settings to list		
 			emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
@@ -86,13 +88,13 @@ class BuddyList(AbstractContactList):
 				for n in range(len(jidsFromOneMUC)): jidsFromOneMUC[n] = unicode(jidsFromOneMUC[n])
 					
 				# add MUC item to list
-				self.muc[str(jidsFromOneMUC)] = MUCItem(self, self.groups[group], jidsFromOneMUC, "-", self.connection)
+				self.muc[str(jidsFromOneMUC)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jidsFromOneMUC, "-", self.connection)
 				
 				titleMUC = "Group chat (" + str(len(jidsFromOneMUC)) + ")"
 				self.muc[str(jidsFromOneMUC)].setName(titleMUC)
 				
-				self.groups[group].addChild(self.muc[str(jidsFromOneMUC)])
-				self.tree[group][str(jidsFromOneMUC)] = self.muc[str(jidsFromOneMUC)]
+				self.groups[MUC_GROUP_TITLE].addChild(self.muc[str(jidsFromOneMUC)])
+				self.tree[MUC_GROUP_TITLE][str(jidsFromOneMUC)] = self.muc[str(jidsFromOneMUC)]
 				
 	def sendMessage(self, item, col):
 		if item and item.type() == QTreeWidgetItem.UserType + 1:
@@ -104,20 +106,19 @@ class BuddyList(AbstractContactList):
 				child.createMsgDialog()
 
 	def newMUCItem(self, jid):
-		group = "Multi-User Chats"
 		if not self.MUCExists(jid):
-			self.addGroup(group)
+			self.addGroup(MUC_GROUP_TITLE)
 				
 			# make elements unicode
 			for n in range(len(jid)): jid[n] = unicode(jid[n])
 			
-			self.muc[str(jid)] = MUCItem(self, self.groups[group], jid, "-", self.connection)
+			self.muc[str(jid)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jid, "-", self.connection)
 			
 			titleMUC = "Group chat (" + str(len(jid)) + ")"
 			self.muc[str(jid)].setName(titleMUC)
 			
-			self.groups[group].addChild(self.muc[str(jid)])
-			self.tree[group][str(jid)] = self.muc[str(jid)]
+			self.groups[MUC_GROUP_TITLE].addChild(self.muc[str(jid)])
+			self.tree[MUC_GROUP_TITLE][str(jid)] = self.muc[str(jid)]
 			
 			self.updateSettingsMUC()
 			

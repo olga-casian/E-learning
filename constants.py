@@ -3,6 +3,8 @@ import os
 
 SHOW = ('available', 'chat', 'away', 'xa', 'dnd', 'offline')
 
+MUC_GROUP_TITLE = "Multi-User Chats"
+
 
 PATH_UI_MAIN = os.path.join('.', 'interface', 'ui_mainwindow.ui')
 PATH_UI_CONNECTION = os.path.join('.', 'interface', 'ui_connection.ui')

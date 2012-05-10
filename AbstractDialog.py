@@ -81,16 +81,17 @@ class AbstractDialog(QWidget):
 		if len(self.jidTo) is 1:
 			if self.initialJidTo != self.jidTo: # if person is new					
 				initialJid = self.setCheckboxes()
+				self.chb_members.setChecked(False)
+				self.showMembersBuddies(False)
 				self.close()
 				
 				self.buddyList.newDialog(self.jidTo[0])
 				
 				# restore initial jidTo
-				self.jidTo[0] = initialJid[0]
+				self.jidTo[0] = unicode(initialJid[0])
 		else:
-			if self.initialJidTo != self.jidTo: # if selected people are new
+			if not self.oldMUC(): # if selected people are new
 				initialJid = self.setCheckboxes()
-				self.close()
 				
 				self.buddyList.newMUCItem(self.jidTo)
 				self.buddyList.newMUCDialog(self.jidTo)
@@ -98,7 +99,22 @@ class AbstractDialog(QWidget):
 				# restore initial jidTo
 				self.jidTo = []
 				for el in initialJid:
-					self.jidTo.append(el)
+					self.jidTo.append(unicode(el))
+				self.chb_members.setChecked(False)
+				self.showMembersBuddies(False)
+				self.close()
+			
+	def oldMUC(self):
+		# True - elements in self.initialJidTo match ones in self.jidTo, 
+		# False - otherwise
+		match = 0
+		for initJid in self.initialJidTo:
+			for jid in self.jidTo:
+				if initJid == jid:
+					match = match + 1
+				if len(self.jidTo) == len(self.initialJidTo) == match:
+					return True
+		return False
 			
 	def setCheckboxes(self):
 		initialJid = []

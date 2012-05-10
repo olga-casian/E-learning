@@ -30,14 +30,10 @@ class AbstractContactList(QTreeWidget):
 				self.tree[group] = {}
 				self.addTopLevelItem(self.groups[group])
 				
-	def removeGroup(self, group, ind = None):
-		for (index, d) in enumerate(self.groups):
-			if d == group:
-				ind = index
-				
+	def removeGroup(self, group):
 		if group:
-			self.takeTopLevelItem(ind)
-			del self.groups[group]
+			self.takeTopLevelItem(self.indexOfTopLevelItem(self.groups[group]))
+			del self.groups[group]			
 	
 	def presence(self, data):
 		jid, show = data
