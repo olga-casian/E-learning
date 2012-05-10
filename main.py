@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
 	# Setup logging
-	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
+	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()

@@ -93,6 +93,9 @@ class AbstractDialog(QWidget):
 			if not self.oldMUC(): # if selected people are new
 				initialJid = self.setCheckboxes()
 				
+				# create or join group
+				self.con.joinMUC(self.jidTo)
+				
 				self.buddyList.newMUCItem(self.jidTo)
 				self.buddyList.newMUCDialog(self.jidTo)
 				

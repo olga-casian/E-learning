@@ -112,6 +112,9 @@ class BuddyList(AbstractContactList):
 			# make elements unicode
 			for n in range(len(jid)): jid[n] = unicode(jid[n])
 			
+			# sort alphabetically
+			jid = sorted(jid)
+			
 			self.muc[str(jid)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jid, "-", self.connection)
 			
 			titleMUC = "Group chat (" + str(len(jid)) + ")"

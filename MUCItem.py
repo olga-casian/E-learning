@@ -1,6 +1,6 @@
 from PyQt4.QtGui import QIcon, QTreeWidgetItem
 
-from MessageDialog import MessageDialog
+from MUCDialog import MUCDialog
 from AbstractListItem import AbstractListItem
 from constants import SHOW
 
@@ -27,7 +27,7 @@ class MUCItem(AbstractListItem):
 			self.messageDialog.show()
 			self.messageDialog.raise_()
 		except:
-			self.messageDialog = MessageDialog(self.connection, self.jid, self.buddyList)
+			self.messageDialog = MUCDialog(self.connection, self.jid, self.buddyList)
 			self.messageDialog.show()
 			self.messageDialog.raise_()
 
