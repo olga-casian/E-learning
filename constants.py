@@ -3,7 +3,6 @@ import os
 
 SHOW = ('available', 'chat', 'away', 'xa', 'dnd', 'offline')
 
-MUC_SERVER = ('conference.talkr.im')
 MUC_GROUP_TITLE = "Multi-User Chats"
 
 

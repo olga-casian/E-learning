@@ -31,6 +31,9 @@ class MUCItem(AbstractListItem):
 			self.MUCDialog.show()
 			self.MUCDialog.raise_()
 			
+	def closeDialog(self):
+		self.MUCDialog.close()
+			
 	def receiveMessage(self, nick, msg):
 		self.createMsgDialog()
 		self.MUCDialog.receiveMessage(nick, msg)

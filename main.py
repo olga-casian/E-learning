@@ -16,7 +16,7 @@ from PyQt4 import uic
 import interface.resource.res
 from BuddyList import BuddyList
 from im import Client
-from constants import SHOW, MUC_SERVER, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC
+from constants import SHOW, MUC_GROUP_TITLE, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC
 
 
 class MainWindow(QMainWindow):	
@@ -52,8 +52,12 @@ class MainWindow(QMainWindow):
 		self.act_connection.triggered.connect(self.showConnectDialog)
 		#self.connect(self.act_deconnection, SIGNAL("triggered()"), self.disconnect)
 		self.connect(self.act_join_group_chat, SIGNAL("triggered()"), self.showMUCDialog)
+		self.act_join_group_chat.setEnabled(False)
+		self.act_add_a_buddy.setEnabled(False)
 		
 		# View
+		self.act_away_buddies.setEnabled(False)
+		self.act_offline_buddies.setEnabled(False)
 		self.connect(self.act_away_buddies, SIGNAL("toogled()"), self.showAwayBuddies)
 		self.connect(self.act_offline_buddies, SIGNAL("toogled()"), self.showOfflineBuddies)
 		self.connect(self.act_away_buddies, SIGNAL("triggered()"), self.showAwayBuddies)
@@ -81,8 +85,15 @@ class MainWindow(QMainWindow):
 	def joinMUC(self):
 		room = "dae-eklen-test2|dae-eklen-test|dae-eklen" #str(self.joinGroupChat.eln_room.text())
 		server = str(self.joinGroupChat.cmb_server.currentText())
-		muc = room + "@" + server
-		self.im.joinMUC(muc)
+		
+		# join if not found in list
+		jids = room.split("|")
+		for n in range(len(jids)): jids[n] = unicode(jids[n] + "@talkr.im")
+		if not self.BuddyList.MUCExists(jids):
+			#muc = room + "@" + server
+			self.im.createMUC(jids)
+		else:
+			self.information("Join Group Chat", "Specified room is already added to '" + MUC_GROUP_TITLE + "' group.")
 		
 	def showConnectDialog(self):
 		# opens connection dialog		
@@ -128,14 +139,19 @@ class MainWindow(QMainWindow):
 			
 		# connecting signals
 		self.connect(self.im, SIGNAL("sessionStarted(PyQt_PyObject)"), self.sessionStarted)
-		self.connect(self.im, SIGNAL("debug"), self.debug)
 		self.connect(self.im, SIGNAL("presence(PyQt_PyObject)"), self.BuddyList.presence)
 		self.connect(self.im, SIGNAL("message"), self.BuddyList.message)
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
+		self.connect(self.im, SIGNAL("critical"), self.critical)
+		self.connect(self.im, SIGNAL("information"), self.information)
+		self.connect(self.im, SIGNAL("debug"), self.debug)
 		
 	def sessionStarted(self, roster_keys):
 		self.act_connection.setEnabled(False)
 		self.act_deconnection.setEnabled(True)
+		self.act_join_group_chat.setEnabled(True)
+		self.act_away_buddies.setEnabled(True)
+		self.act_offline_buddies.setEnabled(True)
         
 		# construct contact list	
 		self.BuddyList.setConnection(self.im)
@@ -180,6 +196,11 @@ class MainWindow(QMainWindow):
 	def showOfflineBuddies(self):
 		self.BuddyList.showOfflineBuddies(not self.act_offline_buddies.isChecked())
 	
+	def critical(self, title, content):
+		QMessageBox.critical(self, title, content, QMessageBox.Ok)
+		
+	def information(self, title, content):
+		QMessageBox.information(self, title, content, QMessageBox.Ok)
 
 if __name__ == "__main__":
 	# Setup logging

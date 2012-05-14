@@ -100,20 +100,20 @@ class AbstractDialog(QWidget):
 				self.buddyList.newDialog(self.jidTo[0])
 				
 				# restore initial jidTo
-				self.jidTo[0] = unicode(initialJid[0])
-		else:
-			if not self.oldMUC(): # if selected people are new
-				initialJid = self.setCheckboxes()
-				
-				print "==============================", self.jidTo
-				
+				self.jidTo = []
+				for el in initialJid:
+					self.jidTo.append(unicode(el))
 				self.jidTo.append(self.con.jabberID)
 				self.jidTo = sorted(self.jidTo)
+		else:
+			self.jidTo.append(self.con.jabberID)
+			if not self.oldMUC(): # if selected people are new
+				initialJid = self.setCheckboxes()		
+				self.jidTo = sorted(self.jidTo)
 				
-				# create or join group
-				try: self.con.createMUC(self.jidTo)
-				except Exception as detail:
-					print "++++++++++++++++\n", detail, "\n++++++++++++++++"
+				# create or join group (always include our jid too)
+				if not self.buddyList.MUCExists(self.jidTo):
+					self.con.createMUC(self.jidTo)
 				
 				self.buddyList.newMUCItem(self.jidTo)
 				self.buddyList.newMUCDialog(self.jidTo)

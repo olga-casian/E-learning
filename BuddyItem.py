@@ -35,7 +35,6 @@ class BuddyItem(AbstractListItem):
 			self.messageDialog.show()
 			self.messageDialog.raise_()
 		except:
-			print "-----BuddyItem\n", self.connection, self.jid, self.buddyList, self.nick, "\n-------"
 			self.messageDialog = MessageDialog(self.connection, self.jid, self.buddyList, self.nick)
 			self.messageDialog.show()
 			self.messageDialog.raise_()

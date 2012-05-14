@@ -15,11 +15,14 @@ class ChatMembers(AbstractContactList):
 		self.members = True
 	
 	def updateMembers(self):
-		for child in self.buddies.values():
+		if unicode(self.parent.con.jabberID) in self.parent.jidTo:
+			self.parent.jidTo.remove(unicode(self.parent.con.jabberID))
+		for child in self.buddies.values():	
 			if child.checkIfMember() == 2 and child.jid not in self.parent.jidTo:
 				self.parent.jidTo.append(child.jid)
 			if child.checkIfMember() == 0 and child.jid in self.parent.jidTo:
 				self.parent.jidTo.remove(child.jid)
+				
 		self.parent.updateDialog()
 		self.hideGroups()
 	
