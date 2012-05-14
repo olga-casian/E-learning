@@ -16,7 +16,7 @@ from PyQt4 import uic
 import interface.resource.res
 from BuddyList import BuddyList
 from im import Client
-from constants import SHOW, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK
+from constants import SHOW, MUC_SERVER, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC
 
 
 class MainWindow(QMainWindow):	
@@ -48,9 +48,10 @@ class MainWindow(QMainWindow):
 		self.vboxlayout.insertWidget(0, self.BuddyList)
 		#self.connect(self.BuddyList, SIGNAL("rename"), self.addBuddy)
 		
-		# Connection
+		# Account
 		self.act_connection.triggered.connect(self.showConnectDialog)
 		#self.connect(self.act_deconnection, SIGNAL("triggered()"), self.disconnect)
+		self.connect(self.act_join_group_chat, SIGNAL("triggered()"), self.showMUCDialog)
 		
 		# View
 		self.connect(self.act_away_buddies, SIGNAL("toogled()"), self.showAwayBuddies)
@@ -70,6 +71,18 @@ class MainWindow(QMainWindow):
 		self.aboutPyTalk = uic.loadUi(PATH_UI_ABOUT_PYTALK)
 		self.aboutPyTalk.show()
 		self.aboutPyTalk.raise_()
+		
+	def showMUCDialog(self):
+		QDialog.__init__(self)
+		self.joinGroupChat = uic.loadUi(PATH_UI_JOIN_MUC)
+		self.joinGroupChat.show()
+		self.connect(self.joinGroupChat, SIGNAL("accepted()"), self.joinMUC)
+		
+	def joinMUC(self):
+		room = "dae-eklen-test2|dae-eklen-test|dae-eklen" #str(self.joinGroupChat.eln_room.text())
+		server = str(self.joinGroupChat.cmb_server.currentText())
+		muc = room + "@" + server
+		self.im.joinMUC(muc)
 		
 	def showConnectDialog(self):
 		# opens connection dialog		
@@ -118,6 +131,7 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("debug"), self.debug)
 		self.connect(self.im, SIGNAL("presence(PyQt_PyObject)"), self.BuddyList.presence)
 		self.connect(self.im, SIGNAL("message"), self.BuddyList.message)
+		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
 		
 	def sessionStarted(self, roster_keys):
 		self.act_connection.setEnabled(False)
@@ -165,6 +179,7 @@ class MainWindow(QMainWindow):
 		
 	def showOfflineBuddies(self):
 		self.BuddyList.showOfflineBuddies(not self.act_offline_buddies.isChecked())
+	
 
 if __name__ == "__main__":
 	# Setup logging

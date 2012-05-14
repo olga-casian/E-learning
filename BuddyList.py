@@ -112,9 +112,6 @@ class BuddyList(AbstractContactList):
 			# make elements unicode
 			for n in range(len(jid)): jid[n] = unicode(jid[n])
 			
-			# sort alphabetically
-			jid = sorted(jid)
-			
 			self.muc[str(jid)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jid, "-", self.connection)
 			
 			titleMUC = "Group chat (" + str(len(jid)) + ")"
@@ -177,10 +174,42 @@ class BuddyList(AbstractContactList):
 		self.expandAll()
 
 	def message(self, data):
-		buddy, msg = data
-		if buddy not in self.buddies.keys():
-			self.buddies[buddy] = BuddyItem(None, buddy)
-		self.buddies[buddy].receiveMessage(buddy, msg)
+		buddy, msg, nick = data
+		if nick:
+			# private msg from muc member
+			if buddy + "/" + nick not in self.buddies.keys():
+				self.buddies[buddy + "/" + nick] = BuddyItem(None, self.groups[MUC_GROUP_TITLE], buddy + "/" + nick, "-", 
+					self.connection, nick)
+				self.buddies[buddy + "/" + nick].setName(nick + " from " + buddy)
+				self.buddies[buddy + "/" + nick].receiveMessage(buddy + "/" + nick, msg)
+		else:
+			# usual private msg
+			"""
+			# currently receives only from items in roster
+			if buddy not in self.buddies.keys():
+				self.buddies[buddy] = BuddyItem(None, self.groups[MUC_GROUP_TITLE], buddy, "-", self.connection)
+				self.buddies[buddy].setName(self.connection.getName(buddy))
+			"""
+			self.buddies[buddy].receiveMessage(buddy, msg)
+		
+	def messageMUC(self, data):
+		muc, nick, msg = data
+		
+		# get group name
+		pattern = """([\w\-\|][\w\-\.\|]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+		jidsFromOneMUC = re.findall(pattern, str(muc))
+		
+		# set list of members
+		jidsFromOneMUC = jidsFromOneMUC[0].split("|")
+		
+		# make elements unicode
+		for n in range(len(jidsFromOneMUC)): jidsFromOneMUC[n] = unicode(jidsFromOneMUC[n] + "@talkr.im")
+
+		jidsFromOneMUC = str(jidsFromOneMUC)
+		
+		if jidsFromOneMUC not in self.muc.keys():
+			self.muc[jidsFromOneMUC] = MUCItem(None, self.groups[MUC_GROUP_TITLE], "Group chat (" + str(len(jidsFromOneMUC)) + ")", "-", self.connection)
+		self.muc[jidsFromOneMUC].receiveMessage(nick, msg)
 
 	def context(self, pos):
 		item = self.itemAt(pos)

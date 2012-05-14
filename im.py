@@ -24,6 +24,7 @@ class Client(QThread):
 		self.xmpp.add_event_handler("message", self.handleIncomingMessage)
 		self.xmpp.add_event_handler("changed_status", self.handleStatusChanged)
 		self.xmpp.add_event_handler("got_offline", self.handleGotOffline)
+		self.xmpp.add_event_handler("got_online", self.handleGotOnline)
 		# The groupchat_message event is triggered whenever a message
 		# stanza is received from any chat room. If you also also
 		# register a handler for the 'message' event, MUC messages
@@ -55,8 +56,7 @@ class Client(QThread):
 		# session_start
 		self.xmpp.sendPresence(pstatus = self.status, pshow = self.show)
 		self.emit(SIGNAL("debug"), "initial presence sent. show: '" + self.show + 
-			"'; status: '" + self.status + "'\n\n")
-		
+			"'; status: '" + self.status + "'\n\n")		
 		try:
 			self.xmpp.get_roster()
 		except IqError as err:
@@ -69,51 +69,85 @@ class Client(QThread):
 			
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
 
-	def joinMUC(self, jidList):
-		jidList = jidList.append(self.jabberID)
-		accountPattern = """([\w\-][\w\-\.]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
-		found = re.findall(accountPattern, str(jidList))
-		room = ""
-		for el in found:
-			room += el + "|"		
-		room = room[:-1] + "@conference.talkr.im"
-		print "!!!!!!!!!!!!", room
+	def joinMUC(self, room):
 		self.xmpp.plugin['xep_0045'].joinMUC(room,
 										self.getName(self.jabberID),
 										# If a room password is needed, use:
 										# password=the_room_password,
 										wait=True)
-		print "+++++++joinMUC"
-		form = self.xmpp.plugin['xep_0045'].getRoomForm(room)
-		print "----------------------\n", form, "\n------------------------\n"
+
+	def createMUC(self, jidList):
+		room = self.jidlistToRoom(jidList)		
+		self.xmpp.plugin['xep_0045'].joinMUC(room,
+										self.getName(self.jabberID),
+										# If a room password is needed, use:
+										# password=the_room_password,
+										wait=True)
 		
-		print "+++++++configureRoom"
+		#print "+++++++joinMUC"
+		form = self.xmpp.plugin['xep_0045'].getRoomForm(room)
+		#print "----------------------\n", form, "\n------------------------\n"
+		
+		#print "+++++++configureRoom"
 		conf = self.xmpp.plugin['xep_0045'].configureRoom(room)
 		if conf == False:
 			print "+++++++++++++++++++++++ room config error +++++++++++++++++++++++"
 		elif conf == True:
 			print "+++++++++++++++++++++++ new romm successfully configured +++++++++++++++++++++++"
-			
-		print "+++++++invite"
+		
+		#print "+++++++invite"
 		for jid in jidList:
-			self.xmpp.plugin['xep_0045'].invite(room, jid)		
+			if jid is not self.jabberID:
+				self.xmpp.plugin['xep_0045'].invite(room, jid)	
 
 	def handleGroupchatMessage(self, message):
 		# groupchat_message
-		print "\n!!!!!!!!!!!!!!!groupchat_message\n", message['type'], message, "\n!!!!!!!!!!!!!!!"
+		if message['mucnick'] != self.getName(self.jabberID):
+			self.emit(SIGNAL("debug"), "MUC message from " + message["from"].bare + " " + message['mucnick'] + 
+				":\n" + message["body"] + "\n\n")
+			self.emit(SIGNAL("messageMUC"), (message["from"].bare, message['mucnick'], message["body"]))
 
 	def handleGroupchatPresence(self, presence):
 		# groupchat_presence
 		print "\n!!!!!!!!!!!!!!!groupchat_presence\n", presence, "\n!!!!!!!!!!!!!!!"
+		jid =  presence['from'].bare
+		
+		if presence['muc']['nick'] != self.getName(self.jabberID):
+			if presence['type'] == "unavailable":
+				show = "offline"
+				self.emit(SIGNAL("messageMUC"), (presence["from"].bare, "", presence['muc']['nick'] + " is now " + show))
+			else:
+				show = "online"
+				self.emit(SIGNAL("messageMUC"), (presence["from"].bare, "", presence['muc']['nick'] + " is now " + show))
 
-	def sendMUCMessage(self, jids, message):
-		pass
+			self.emit(SIGNAL("debug"), presence['muc']['nick'] + " is now " + show + "'\n\n")
+
+	def sendMUCMessage(self, jidList, message):
+		room = self.jidlistToRoom(jidList)
+		self.xmpp.send_message(mto=room,
+							mbody=message,
+							mtype='groupchat')
+		self.emit(SIGNAL("debug"), "message to " + room + ":\n" + message + "\n\n")
+
+	def jidlistToRoom(self, jidList):
+		pattern = """([\w\-][\w\-\.]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+		found = re.findall(pattern, str(jidList))
+		room = ""
+		for el in found:
+			room += el + "|"		
+		room = room[:-1] + "@conference.talkr.im"
+		return room
 
 	def handleIncomingMessage(self, message): 
 		# message
 		if message['type'] in ('normal', 'chat'):
 			self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
-			self.emit(SIGNAL("message"), (message["from"].bare, message["body"]))
+			if "conference" in message["from"].bare:
+				patternNickFromMUC = """[\w\-\|][\w\-\.\|]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}/([\w\-\|][\w\-\.\|]*)"""
+				nick = re.findall(patternNickFromMUC, str(message["from"]))
+				self.emit(SIGNAL("message"), (message["from"].bare, message["body"], nick[0]))
+			else:
+				self.emit(SIGNAL("message"), (message["from"].bare, message["body"], None))
 		
 	def sendMessage(self, tojid, message):
 		self.xmpp.sendMessage(mto = tojid, mbody = message, mtype='chat')
@@ -121,13 +155,13 @@ class Client(QThread):
 	
 	def handleStatusChanged(self, presence):
 		# changed_status
-		jid =  presence['from'].bare
-		if presence['show'] == "": show = "available"
-		else: show =  presence['show']
-		#status =  presence['status']
-		self.emit(SIGNAL("presence(PyQt_PyObject)"), (jid, show))
-		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " has new show: '" + 
-			show + "'\n\n")
+		if presence['muc']['nick'] == "":
+			jid =  presence['from'].bare
+			if presence['show'] == "": show = "available"
+			else: show =  presence['show']
+			self.emit(SIGNAL("presence(PyQt_PyObject)"), (jid, show))
+			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " has new show: '" + 
+				show + "'\n\n")
 		
 	def handleGotOffline(self, presence):
 		# got_offline
@@ -135,23 +169,31 @@ class Client(QThread):
 			self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'].bare, "offline"))
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
+	def handleGotOnline(self, presence):
+		print "\n+++++++++++ONLINE\n", presence, "\n++++++++++++++++"
+		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "offline"))
+		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
+	
 	def getGroups(self, jid):
 		if self.xmpp.client_roster[jid]["groups"]:
 			return self.xmpp.client_roster[jid]["groups"]
 		else:
 			return ["Buddies"]
 			
-	def getShow(self, jid):
-		if self.xmpp.client_roster.presence(jid):
-			for resource in self.xmpp.client_roster[jid].resources.values():
+	def getBuddyShow(self, jid):
+		pass
+			
+	def getShow(self, jids):
+		if self.xmpp.client_roster.presence(jids):
+			for resource in self.xmpp.client_roster[jids].resources.values():
 				if resource["show"] is not "": 
-					#self.emit(SIGNAL("debug"), resource["show"] + " - " + jid + "\n\n") 
+					#self.emit(SIGNAL("debug"), resource["show"] + " - " + jids + "\n\n") 
 					return resource["show"]
-				elif self.xmpp.client_roster.presence(jid): 
-					#self.emit(SIGNAL("debug"), "available - " + jid + "\n\n") 
+				elif self.xmpp.client_roster.presence(jids): 
+					#self.emit(SIGNAL("debug"), "available - " + jids + "\n\n") 
 					return "available"
 		else: 
-			#self.emit(SIGNAL("debug"), "offline - " + jid + "\n\n") 
+			#self.emit(SIGNAL("debug"), "offline - " + jids + "\n\n") 
 			return "offline"
 		
 	def getName(self, jid):

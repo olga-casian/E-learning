@@ -3,7 +3,7 @@ from PyQt4.QtCore import Qt
 
 
 class AbstractListItem(QTreeWidgetItem):
-	def __init__(self, parent, jid, show, con):
+	def __init__(self, parent, jid, show, con, nick = None):
 		QTreeWidgetItem.__init__(self, parent, jid, QTreeWidgetItem.UserType + 1)
 
 		# QTreeWidgetItem configuration
@@ -12,6 +12,7 @@ class AbstractListItem(QTreeWidgetItem):
 		self.jid = jid
 		self.name = jid
 		self.connection = con
+		self.nick = nick
 		
 	def setName(self, name):
 		if name:

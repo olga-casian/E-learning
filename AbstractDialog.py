@@ -2,6 +2,7 @@ from PyQt4.QtGui import QWidget, QTextEdit
 from PyQt4.QtCore import SIGNAL, QSize, Qt
 from PyQt4 import QtGui, QtCore
 from PyQt4 import uic
+import re
 
 from constants import PATH_UI_MESSAGE
 from ChatMembers import ChatMembers
@@ -24,7 +25,7 @@ class MessageTextEdit(QTextEdit):
 	
 		
 class AbstractDialog(QWidget):
-	def __init__(self, con, jidTo, buddyList, parent = None):
+	def __init__(self, con, jidTo, buddyList, parent = None, nick = None):
 		super(AbstractDialog, self).__init__(parent)
 
 		self.jidTo = []
@@ -40,6 +41,7 @@ class AbstractDialog(QWidget):
 			
 		self.con = con
 		self.buddyList = buddyList
+		self.nick = nick
 		
 		# loading .ui
 		uic.loadUi(PATH_UI_MESSAGE, self)
@@ -54,26 +56,36 @@ class AbstractDialog(QWidget):
 		#self.tbr_browser.setOpenLinks(True)
 		self.messageTextEdit.setFocus()
 		
-		# chat members
-		self.chatMembers = ChatMembers(self)
-		self.vlt_members.insertWidget(1, self.chatMembers)
-		self.chatMembers.setConnection(self.con)
-		
-		if len(self.jidTo) is 1:
-			self.chatMembers.constructMessageList()
-		else:
-			self.chatMembers.constructMUCList()
+		# chat members		
+		if self.nick is None:
+			self.chatMembers = ChatMembers(self)
+			self.vlt_members.insertWidget(1, self.chatMembers)
+			self.chatMembers.setConnection(self.con)
 			
-		self.showMembersBuddies(True)
+			if len(self.jidTo) is 1:
+				self.chatMembers.constructMessageList()
+			else:
+				self.chatMembers.constructMUCList()
+				
+			self.showMembersBuddies(True)
+			
+			self.connect(self.btn_update, SIGNAL("clicked()"), self.chatMembers.updateMembers)
+		else:
+			# never show chat members if it is a privite chat with muc member
+			self.btn_members.hide()
 
 		#self.connect(self.tbr_browser, SIGNAL("anchorClicked(QUrl)"), self.openLink)
 		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembersLayout)		
 		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)
-		self.connect(self.btn_update, SIGNAL("clicked()"), self.chatMembers.updateMembers)
 
 	def dialogTitle(self):
 		if len(self.jidTo) is 1:
-			self.setWindowTitle("Chat with " + self.con.getName(self.jidTo[0]))
+			if self.nick:
+				mucPattern = """([\w\-\|][\w\-\.\|]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4})/[\w\-\|][\w\-\.\|]*"""
+				group = re.findall(mucPattern, self.jidTo[0])				
+				self.setWindowTitle("Chat with " + self.nick + " from " + group[0]) 
+			else:
+				self.setWindowTitle("Chat with " + self.con.getName(self.jidTo[0]))
 		else:
 			self.setWindowTitle("Group chat (" + str(len(self.jidTo)) + ")")	
 			
@@ -93,8 +105,15 @@ class AbstractDialog(QWidget):
 			if not self.oldMUC(): # if selected people are new
 				initialJid = self.setCheckboxes()
 				
+				print "==============================", self.jidTo
+				
+				self.jidTo.append(self.con.jabberID)
+				self.jidTo = sorted(self.jidTo)
+				
 				# create or join group
-				self.con.joinMUC(self.jidTo)
+				try: self.con.createMUC(self.jidTo)
+				except Exception as detail:
+					print "++++++++++++++++\n", detail, "\n++++++++++++++++"
 				
 				self.buddyList.newMUCItem(self.jidTo)
 				self.buddyList.newMUCDialog(self.jidTo)

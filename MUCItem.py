@@ -24,10 +24,14 @@ class MUCItem(AbstractListItem):
 		
 	def createMsgDialog(self):
 		try:
-			self.messageDialog.show()
-			self.messageDialog.raise_()
+			self.MUCDialog.show()
+			self.MUCDialog.raise_()
 		except:
-			self.messageDialog = MUCDialog(self.connection, self.jid, self.buddyList)
-			self.messageDialog.show()
-			self.messageDialog.raise_()
+			self.MUCDialog = MUCDialog(self.connection, self.jid, self.buddyList)
+			self.MUCDialog.show()
+			self.MUCDialog.raise_()
+			
+	def receiveMessage(self, nick, msg):
+		self.createMsgDialog()
+		self.MUCDialog.receiveMessage(nick, msg)
 

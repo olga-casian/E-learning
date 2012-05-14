@@ -103,6 +103,10 @@
     </property>
     <addaction name="act_connection"/>
     <addaction name="act_deconnection"/>
+    <addaction name="separator"/>
+    <addaction name="act_add_a_buddy"/>
+    <addaction name="act_join_group_chat"/>
+    <addaction name="separator"/>
     <addaction name="act_quit"/>
    </widget>
    <widget class="QMenu" name="men_affichage">
@@ -237,6 +241,14 @@
   <action name="act_logs">
    <property name="text">
     <string>Logs</string>
+   </property>
+  </action>
+  <action name="act_join_group_chat">
+   <property name="text">
+    <string>Join Group Chat</string>
+   </property>
+   <property name="toolTip">
+    <string>Join Group Chat</string>
    </property>
   </action>
  </widget>

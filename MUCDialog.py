@@ -14,4 +14,9 @@ class MUCDialog(AbstractDialog):
 		self.tbr_browser.append(message)
 		self.con.sendMUCMessage(self.jidTo, text)
 		self.messageTextEdit.clear()
-
+		
+	def receiveMessage(self, nick, msg):
+		time = str(datetime.datetime.now().strftime("%H:%M:%S"))
+		message = """\n<span style="color: darkblue">[%s] <strong>%s:</strong></span> %s""" % (time, nick, msg)#(time, self.con.getName(self.jidTo[0]), msg)
+		self.tbr_browser.append(message)
+		self.emit(SIGNAL("debug"), "MUC message form " + self.con.getName(self.jidTo[0]) + ":\n" + msg + "\n\n")
