@@ -144,6 +144,7 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
 		self.connect(self.im, SIGNAL("critical"), self.critical)
 		self.connect(self.im, SIGNAL("information"), self.information)
+		self.connect(self.im, SIGNAL("question"), self.question)
 		self.connect(self.im, SIGNAL("debug"), self.debug)
 		
 	def sessionStarted(self, roster_keys):
@@ -201,6 +202,9 @@ class MainWindow(QMainWindow):
 		
 	def information(self, title, content):
 		QMessageBox.information(self, title, content, QMessageBox.Ok)
+		
+	def question(self, title, content):
+		QMessageBox.question(self, title, content)
 
 if __name__ == "__main__":
 	# Setup logging

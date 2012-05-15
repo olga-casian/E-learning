@@ -86,7 +86,7 @@ class BuddyList(AbstractContactList):
 		mucs = self.settings.value("MUC", "")
 		self.settings.endGroup()
 		
-		if mucs != []:
+		if mucs is not None:
 			self.addGroup(MUC_GROUP_TITLE)
 			
 			# muc from settings to list		

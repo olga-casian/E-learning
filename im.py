@@ -19,6 +19,7 @@ class Client(QThread):
 		self.xmpp.register_plugin('xep_0045') # Multi-User Chat
 		self.xmpp.register_plugin('xep_0199') # XMPP Ping
 		self.xmpp.register_plugin('old_0004') # xep_0045 depends on old_0004 in order to have data forms
+		self.xmpp.register_plugin('xep_0249') # groupchat_direct_invite
 		
 		self.xmpp.add_event_handler("session_start", self.handleXMPPConnected) 
 		self.xmpp.add_event_handler("message", self.handleIncomingMessage)
@@ -36,7 +37,8 @@ class Client(QThread):
 		# to a single room, use the events muc::room@server::presence,
 		# muc::room@server::got_online, or muc::room@server::got_offline.
 		#self.xmpp.add_event_handler("muc::%s::got_online" % self.room, self.muc_online)
-		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)
+		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)		
+		self.xmpp.add_event_handler("groupchat_direct_invite", self.handleGroupchatDirectInvite)
 		
 		self.received = set()
 		self.presences_received = threading.Event()
@@ -69,14 +71,33 @@ class Client(QThread):
 			
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
 
-	def joinMUC(self, room):
-		print "!!!JOIN MUC"
-		self.xmpp.plugin['xep_0045'].joinMUC(room,
-										self.getJidNick(self.jabberID),
-										# If a room password is needed, use:
-										# password=the_room_password,
-										wait=True)
-
+	def handleGroupchatDirectInvite(self, invite):
+		# groupchat_direct_invite
+		print "\n!!!!!!!!!!!!!!!groupchat_direct_invite\n", invite, "\n!!!!!!!!!!!!!!!"
+		print "Received direct muc invitation from %s to room %s", invite['from'], invite['groupchat_invite']['jid']
+		print invite['body']
+		text = "Received invitation from " + str(invite['from']) + " to room " + str(invite['groupchat_invite']['jid'])
+		if invite['body'] != "":
+			text += ":\n\n" + invite['body']
+		text += "\n\nDo you want to accept the invitation?"
+		self.emit(SIGNAL("question"), "Groupchat invitation", text)
+		
+		"""
+		from sleekxmpp.xmlstream import ET
+		def decline_invite(self, room, jid, reason='', mfrom=''):
+			msg = self.xmpp.makeMessage(room)
+			msg['from'] = mfrom
+			x = ET.Element('{http://jabber.org/protocol/muc#user}x')
+			decline = ET.Element('{http://jabber.org/protocol/muc#user}decline', {'to': jid})
+			if reason:
+				rxml = ET.Element('reason')
+				rxml.text = reason
+				decline.append(rxml)
+			x.append(decline)
+			msg.append(x)
+			self.xmpp.send(msg)
+        """
+		
 	def createMUC(self, jidList):
 		room = self.jidlistToRoom(jidList)		
 		"""
@@ -87,7 +108,7 @@ class Client(QThread):
 										wait=True)
 		
 		print "+++++++joinMUC"
-		form = self.xmpp.plugin['xep_0045'].getRoomForm(room)
+		form = self.xmpp.plugin['xep_0045'].getRoomForm(room) #getRoomConfig
 		#print "----------------------\n", form, "\n------------------------\n"
 		
 		print "+++++++configureRoom"
@@ -123,7 +144,6 @@ class Client(QThread):
 		#print "+++++++invite"
 		print "!!!SEND INVITES"
 		for jid in jidList:
-			print "||||||||||||||||||", jid, self.jabberID , jid is not self.jabberID
 			if str(jid) != str(self.jabberID):
 				self.xmpp.plugin['xep_0045'].invite(room, jid)
 		
@@ -169,13 +189,14 @@ class Client(QThread):
 	def handleIncomingMessage(self, message): 
 		# message
 		if message['type'] in ('normal', 'chat'):
-			self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
-			if "conference" in message["from"].bare:
-				patternNickFromMUC = """[\w\-\|][\w\-\.\|]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}/([\w\-\|][\w\-\.\|]*)"""
-				nick = re.findall(patternNickFromMUC, str(message["from"]))
-				self.emit(SIGNAL("message"), (message["from"].bare, message["body"], nick[0]))
-			else:
-				self.emit(SIGNAL("message"), (message["from"].bare, message["body"], None))
+			if not message.match('message/groupchat_invite'):
+				self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
+				if "conference" in message["from"].bare:
+					patternNickFromMUC = """[\w\-\|][\w\-\.\|]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}/([\w\-\|][\w\-\.\|]*)"""
+					nick = re.findall(patternNickFromMUC, str(message["from"]))
+					self.emit(SIGNAL("message"), (message["from"].bare, message["body"], nick[0]))
+				else:
+					self.emit(SIGNAL("message"), (message["from"].bare, message["body"], None))
 		
 	def sendMessage(self, tojid, message):
 		self.xmpp.sendMessage(mto = tojid, mbody = message, mtype='chat')
