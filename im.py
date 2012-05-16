@@ -1,5 +1,6 @@
 from PyQt4.QtCore import QThread, SIGNAL
 import sleekxmpp
+from sleekxmpp.xmlstream import ET
 import threading
 import re
 
@@ -18,8 +19,9 @@ class Client(QThread):
 		self.xmpp.register_plugin('xep_0030') # Service Discovery
 		self.xmpp.register_plugin('xep_0045') # Multi-User Chat
 		self.xmpp.register_plugin('xep_0199') # XMPP Ping
-		self.xmpp.register_plugin('old_0004') # xep_0045 depends on old_0004 in order to have data forms
+		self.xmpp.register_plugin('old_0004') # used by xep_0045 in order to have data forms
 		self.xmpp.register_plugin('xep_0249') # groupchat_direct_invite
+		self.xmpp.register_plugin('xep_0030') # disco
 		
 		self.xmpp.add_event_handler("session_start", self.handleXMPPConnected) 
 		self.xmpp.add_event_handler("message", self.handleIncomingMessage)
@@ -71,20 +73,23 @@ class Client(QThread):
 			
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
 
+	def dicsoveryJid(self, jid):
+		try:
+			return self.xmpp.plugin['xep_0030'].get_info(jid)
+		except:
+			return False
+
 	def handleGroupchatDirectInvite(self, invite):
 		# groupchat_direct_invite
-		print "\n!!!!!!!!!!!!!!!groupchat_direct_invite\n", invite, "\n!!!!!!!!!!!!!!!"
-		print "Received direct muc invitation from %s to room %s", invite['from'], invite['groupchat_invite']['jid']
-		print invite['body']
-		text = "Received invitation from " + str(invite['from']) + " to room " + str(invite['groupchat_invite']['jid'])
 		if invite['body'] != "":
-			text += ":\n\n" + invite['body']
-		text += "\n\nDo you want to accept the invitation?"
-		self.emit(SIGNAL("question"), "Groupchat invitation", text)
+			emailPattern = """([\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4})"""
+			jidFrom = re.findall(emailPattern, invite['body'])
+		else:
+			jidFrom[0] = None
+			
+		self.emit(SIGNAL("inviteMUC"), str(invite['groupchat_invite']['jid']), jidFrom[0])
 		
-		"""
-		from sleekxmpp.xmlstream import ET
-		def decline_invite(self, room, jid, reason='', mfrom=''):
+	def declineMUCInvite(self, room, jid, reason='', mfrom=''):
 			msg = self.xmpp.makeMessage(room)
 			msg['from'] = mfrom
 			x = ET.Element('{http://jabber.org/protocol/muc#user}x')
@@ -96,56 +101,34 @@ class Client(QThread):
 			x.append(decline)
 			msg.append(x)
 			self.xmpp.send(msg)
-        """
+		
+	def joinMUC(self, jidList):
+		room = self.jidlistToRoom(jidList)
+		self.xmpp.plugin['xep_0045'].joinMUC(room,
+										self.getJidNick(self.jabberID),
+										# If a room password is needed, use:
+										# password=the_room_password,
+										wait=True)
 		
 	def createMUC(self, jidList):
-		room = self.jidlistToRoom(jidList)		
-		"""
-		self.xmpp.plugin['xep_0045'].joinMUC(room,
+		room = self.jidlistToRoom(jidList)
+		if not self.dicsoveryJid(room):
+			self.xmpp.plugin['xep_0045'].joinMUC(room,
 										self.getJidNick(self.jabberID),
 										# If a room password is needed, use:
 										# password=the_room_password,
 										wait=True)
-		
-		print "+++++++joinMUC"
-		form = self.xmpp.plugin['xep_0045'].getRoomForm(room) #getRoomConfig
-		#print "----------------------\n", form, "\n------------------------\n"
-		
-		print "+++++++configureRoom"
-		conf = self.xmpp.plugin['xep_0045'].configureRoom(room)
-		if conf == False:
-			print "+++++++++++++++++++++++ room config error +++++++++++++++++++++++"
-		elif conf == True:
-			print "+++++++++++++++++++++++ new romm successfully configured +++++++++++++++++++++++"
-		
-		#print "+++++++invite"
-		for jid in jidList:
-			if jid is not self.jabberID:
-				self.xmpp.plugin['xep_0045'].invite(room, jid)	
-		"""
-		print "!!!CREATE MUC"
-		self.xmpp.plugin['xep_0045'].joinMUC(room,
-										self.getJidNick(self.jabberID),
-										# If a room password is needed, use:
-										# password=the_room_password,
-										wait=True)
-		"""
-		print "+++++++joinMUC"
-		form = self.xmpp.plugin['xep_0045'].getRoomForm(room)
-		#print "----------------------\n", form, "\n------------------------\n"
-		
-		print "+++++++configureRoom"
-		conf = self.xmpp.plugin['xep_0045'].configureRoom(room)
-		if conf == False:
-			print "+++++++++++++++++++++++ room config error +++++++++++++++++++++++"
-		elif conf == True:
-			print "+++++++++++++++++++++++ new romm successfully configured +++++++++++++++++++++++"
-		"""
-		#print "+++++++invite"
-		print "!!!SEND INVITES"
-		for jid in jidList:
-			if str(jid) != str(self.jabberID):
-				self.xmpp.plugin['xep_0045'].invite(room, jid)
+			form = self.xmpp.plugin['xep_0045'].getRoomForm(room)			
+			conf = self.xmpp.plugin['xep_0045'].configureRoom(room)
+			if conf == False:
+				return False
+			elif conf == True:
+				for jid in jidList:
+					if str(jid) != str(self.jabberID):
+						self.xmpp.plugin['xep_0045'].invite(room, jid)
+				return True
+		else:
+			self.joinMUC(jidList)
 		
 	def leaveMUC(self, room):
 		self.xmpp.plugin['xep_0045'].leaveMUC(room, self.getJidNick(self.jabberID))
@@ -159,7 +142,6 @@ class Client(QThread):
 
 	def handleGroupchatPresence(self, presence):
 		# groupchat_presence
-		#print "\n!!!!!!!!!!!!!!!groupchat_presence\n", presence, "\n!!!!!!!!!!!!!!!"
 		jid =  presence['from'].bare
 		
 		if presence['muc']['nick'] != self.getJidNick(self.jabberID):
@@ -219,7 +201,6 @@ class Client(QThread):
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
 	def handleGotOnline(self, presence):
-		#print "\n+++++++++++ONLINE\n", presence, "\n++++++++++++++++"
 		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "offline"))
 		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
@@ -228,9 +209,6 @@ class Client(QThread):
 			return self.xmpp.client_roster[jid]["groups"]
 		else:
 			return ["Buddies"]
-			
-	def getBuddyShow(self, jid):
-		pass
 			
 	def getShow(self, jids):
 		if self.xmpp.client_roster.presence(jids):

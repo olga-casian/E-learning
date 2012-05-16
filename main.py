@@ -9,6 +9,7 @@ sip.setapi('QVariant', 2)
 import logging
 import datetime
 import sys
+import re
 from PyQt4.QtGui import *
 from PyQt4.QtCore import SIGNAL, SLOT, QSettings, Qt
 from PyQt4 import uic
@@ -83,17 +84,44 @@ class MainWindow(QMainWindow):
 		self.connect(self.joinGroupChat, SIGNAL("accepted()"), self.joinMUC)
 		
 	def joinMUC(self):
-		room = "dae-eklen-test2|dae-eklen-test|dae-eklen" #str(self.joinGroupChat.eln_room.text())
+		room = str(self.joinGroupChat.eln_room.text()) # dae-eklen-test2|dae-eklen-test|dae-eklen
 		server = str(self.joinGroupChat.cmb_server.currentText())
 		
-		# join if not found in list
-		jids = room.split("|")
-		for n in range(len(jids)): jids[n] = unicode(jids[n] + "@talkr.im")
-		if not self.BuddyList.MUCExists(jids):
-			#muc = room + "@" + server
-			self.im.createMUC(jids)
+		self.checkAndJoinMUC(room)
+
+	def inviteMUC(self, room, jidFrom):
+		if jidFrom:
+			text = "Received invitation from " + jidFrom + " to room " + room
 		else:
-			self.information("Join Group Chat", "Specified room is already added to '" + MUC_GROUP_TITLE + "' group.")
+			text = "Received invitation to room " + room		
+		text += "\n\nDo you want to accept the invitation?"
+		
+		reply = QMessageBox.question(self, "Groupchat invitation", text, QMessageBox.Yes, QMessageBox.No)
+		if reply == QMessageBox.Yes:
+			mucTitlePattern = """([\w\-][\w\-\.\|]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+			name = re.findall(mucTitlePattern, room)
+			self.checkAndJoinMUC(name[0])
+		else:
+			self.im.declineMUCInvite(room, jidFrom)
+	
+	def checkAndJoinMUC(self, roomName):
+		jids = roomName.split("|")
+		match = 0 
+		users = []
+		for el in range(len(jids)): 
+			users.append(unicode(jids[el] + "@talkr.im"))
+			if self.im.dicsoveryJid(users[el]): # if user exists
+				match += 1
+					
+		if len(jids) == match and match != 0:
+			# our type of group
+			if not self.BuddyList.MUCExists(users):
+				self.im.joinMUC(users)
+			else:
+				self.information("Join Group Chat", "Specified room is already added to '" + MUC_GROUP_TITLE + "' group.")
+		else:
+			# usual group: currently unavaiilable
+			self.information("Join Group Chat", "This type of group is currently N/A")
 		
 	def showConnectDialog(self):
 		# opens connection dialog		
@@ -142,9 +170,9 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("presence(PyQt_PyObject)"), self.BuddyList.presence)
 		self.connect(self.im, SIGNAL("message"), self.BuddyList.message)
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
+		self.connect(self.im, SIGNAL("inviteMUC"), self.inviteMUC)
 		self.connect(self.im, SIGNAL("critical"), self.critical)
 		self.connect(self.im, SIGNAL("information"), self.information)
-		self.connect(self.im, SIGNAL("question"), self.question)
 		self.connect(self.im, SIGNAL("debug"), self.debug)
 		
 	def sessionStarted(self, roster_keys):
@@ -202,10 +230,7 @@ class MainWindow(QMainWindow):
 		
 	def information(self, title, content):
 		QMessageBox.information(self, title, content, QMessageBox.Ok)
-		
-	def question(self, title, content):
-		QMessageBox.question(self, title, content)
-
+	
 if __name__ == "__main__":
 	# Setup logging
 	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
