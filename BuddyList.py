@@ -60,10 +60,19 @@ class BuddyList(AbstractContactList):
 						room += nick[0] + "|"
 				if len(self.currentItem.jid) == match ==len(keyList):
 					# clear vars in code:
-					# make elements unicode
 					for n in range(len(keyList)): keyList[n] = unicode(keyList[n])
 					
-					self.muc[str(keyList)].closeDialog()				
+					# close windows
+					self.muc[str(keyList)].closeDialog()
+					roomToLeave = self.connection.jidlistToRoom(keyList)
+					toDel = []
+					for buddy in self.buddies:
+						if self.buddies[buddy].muc == roomToLeave: # ex: dae-eklen-test2|dae-eklen-test|dae-eklen@conference.talkr.im
+							self.buddies[buddy].closeDialog()
+							toDel.append(buddy)
+					for el in toDel:
+						del self.buddies[el]
+								
 					del self.tree[MUC_GROUP_TITLE][str(keyList)]						
 					self.groups[MUC_GROUP_TITLE].removeChild(self.muc[str(keyList)])
 						
@@ -189,7 +198,7 @@ class BuddyList(AbstractContactList):
 			# private msg from muc member
 			if buddy + "/" + nick not in self.buddies.keys():
 				self.buddies[buddy + "/" + nick] = BuddyItem(None, self.groups[MUC_GROUP_TITLE], buddy + "/" + nick, "-", 
-					self.connection, nick)
+					self.connection, nick, buddy)
 				self.buddies[buddy + "/" + nick].setName(nick + " from " + buddy)
 				self.buddies[buddy + "/" + nick].receiveMessage(buddy + "/" + nick, msg)
 		else:

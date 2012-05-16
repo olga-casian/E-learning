@@ -13,8 +13,8 @@ class BuddyItem(AbstractListItem):
 	dialog = None
 	msg = None
 
-	def __init__(self, buddyList, parent, jid, show, con, nick = None):
-		AbstractListItem.__init__(self, parent, jid, show, con, nick)
+	def __init__(self, buddyList, parent, jid, show, con, nick = None, muc = None):
+		AbstractListItem.__init__(self, parent, jid, show, con, nick, muc)
 		
 		self.buddyList = buddyList
 		self.setStatus(show)
@@ -38,6 +38,9 @@ class BuddyItem(AbstractListItem):
 			self.messageDialog = MessageDialog(self.connection, self.jid, self.buddyList, self.nick)
 			self.messageDialog.show()
 			self.messageDialog.raise_()
+
+	def closeDialog(self):
+		self.messageDialog.close()
 
 	def receiveMessage(self, buddy, msg):
 		self.createMsgDialog()

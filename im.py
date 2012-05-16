@@ -135,6 +135,7 @@ class Client(QThread):
 
 	def handleGroupchatMessage(self, message):
 		# groupchat_message
+		print "________________________________________groupchat_message\n", message, "\n________________________________________________"
 		if message['mucnick'] != self.getJidNick(self.jabberID):
 			self.emit(SIGNAL("debug"), "MUC message from " + message["from"].bare + " " + message['mucnick'] + 
 				":\n" + message["body"] + "\n\n")
@@ -170,6 +171,7 @@ class Client(QThread):
 
 	def handleIncomingMessage(self, message): 
 		# message
+		print "________________________________________message\n", message, "\n________________________________________________"
 		if message['type'] in ('normal', 'chat'):
 			if not message.match('message/groupchat_invite'):
 				self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
