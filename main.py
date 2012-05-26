@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
 		self.eln_status_edit.hide()
 		
 		# connecting signals
-		self.connect(self.cmb_status_box, SIGNAL("currentIndexChanged(int)"), self.statusUpdate)
+		self.connect(self.cmb_status_box, SIGNAL("activated(int)"), self.statusUpdate)
 		self.connect(self.eln_status_edit, SIGNAL("returnPressed()"), self.statusUpdate)
         
         # Set BuddyList
@@ -49,10 +49,14 @@ class MainWindow(QMainWindow):
 		self.vboxlayout.insertWidget(0, self.BuddyList)
 		#self.connect(self.BuddyList, SIGNAL("rename"), self.addBuddy)
 		
+		# sleekxmpp connection
+		self.im = None
+		
 		# Account
 		self.act_connection.triggered.connect(self.showConnectDialog)
-		#self.connect(self.act_deconnection, SIGNAL("triggered()"), self.disconnect)
+		self.connect(self.act_deconnection, SIGNAL("triggered()"), self.disconnect)
 		self.connect(self.act_join_group_chat, SIGNAL("triggered()"), self.showMUCDialog)
+		self.connect(self.act_quit, SIGNAL("triggered()"), self.quitApp)
 		self.act_join_group_chat.setEnabled(False)
 		self.act_add_a_buddy.setEnabled(False)
 		
@@ -133,21 +137,43 @@ class MainWindow(QMainWindow):
 		self.connectionDialog.eln_jid.setText(self.settings.value("jid", ""))
 		self.connectionDialog.eln_pass.setText(self.settings.value("password", ""))
 
-		"""
+	def closeEvent(self, event):
+		# called on close (Ctrl+Q)
+		reply = QMessageBox.question(self, app.translate("wnd_main", "Exit"),
+			app.translate("wnd_main", "Are you sure to quit?"), 
+			QMessageBox.Yes | QMessageBox.No, 
+			QMessageBox.No)
+			
+		if reply == QMessageBox.Yes:			
+			try:
+				sys.exit(self.helpForm)
+			except AttributeError:
+				pass
+			self.disconnect()
+			event.accept()
+		else:
+			event.ignore()
+
+	def quitApp(self):
+		self.disconnect()
+		QApplication.instance().quit()
+
 	def disconnect(self):
-		self.act_connection.setEnabled(True)
-		self.act_deconnection.setEnabled(False)
-		self.eln_status_edit.hide()
-		self.cmb_status_box.setEnabled(False)
 		if self.im:
 			self.im.stop()
 			self.im = None
-		#QApplication.instance().quit()
-		"""
+			self.BuddyList.clear()
+			self.act_connection.setEnabled(True)
+			self.act_deconnection.setEnabled(False)
+			self.eln_status_edit.hide()
+			self.cmb_status_box.setCurrentIndex(5)
+			self.cmb_status_box.setEnabled(False)
+			self.act_away_buddies.setEnabled(False)
+			self.act_offline_buddies.setEnabled(False)
+			self.act_join_group_chat.setEnabled(False)
 
 	def connection(self):		
 		# settings for jid and pass
-		#self.settings = QSettings("Dae-ekleN", "PyTalk")
 		self.settings.setValue("jid", self.connectionDialog.eln_jid.text())
 		self.settings.setValue("password", self.connectionDialog.eln_pass.text())
 			
@@ -168,6 +194,7 @@ class MainWindow(QMainWindow):
 		# connecting signals
 		self.connect(self.im, SIGNAL("sessionStarted(PyQt_PyObject)"), self.sessionStarted)
 		self.connect(self.im, SIGNAL("presence(PyQt_PyObject)"), self.BuddyList.presence)
+		self.connect(self.im, SIGNAL("disconnect"), self.disconnect)
 		self.connect(self.im, SIGNAL("message"), self.BuddyList.message)
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
 		self.connect(self.im, SIGNAL("inviteMUC"), self.inviteMUC)
@@ -202,14 +229,15 @@ class MainWindow(QMainWindow):
 		self.cmb_status_box.setEnabled(True)
 	
 	def statusUpdate(self):
-		# update settings
-		self.settings.beginGroup(self.clientJid)
-		self.settings.setValue("latestShow", SHOW[self.cmb_status_box.currentIndex()])
-		self.settings.setValue("latestStatus", self.eln_status_edit.text())
-		self.settings.endGroup()
-		self.debug("new presence set. show: '" + SHOW[self.cmb_status_box.currentIndex()] +
-			"'; status: '" + self.eln_status_edit.text() + "'\n\n")
-		
+		if SHOW[self.cmb_status_box.currentIndex()] != "offline":
+			# update settings
+			self.settings.beginGroup(self.clientJid)
+			self.settings.setValue("latestShow", SHOW[self.cmb_status_box.currentIndex()])
+			self.settings.setValue("latestStatus", self.eln_status_edit.text())
+			self.settings.endGroup()
+			self.debug("new presence set. show: '" + SHOW[self.cmb_status_box.currentIndex()] +
+				"'; status: '" + self.eln_status_edit.text() + "'\n\n")
+			
 		self.im.changeStatus(self.cmb_status_box.currentIndex(), self.eln_status_edit.text())
             
 	def showLogs(self):

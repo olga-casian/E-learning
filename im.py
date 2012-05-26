@@ -135,7 +135,7 @@ class Client(QThread):
 
 	def handleGroupchatMessage(self, message):
 		# groupchat_message
-		print "________________________________________groupchat_message\n", message, "\n________________________________________________"
+		#print "________________________________________groupchat_message\n", message, "\n________________________________________________"
 		if message['mucnick'] != self.getJidNick(self.jabberID):
 			self.emit(SIGNAL("debug"), "MUC message from " + message["from"].bare + " " + message['mucnick'] + 
 				":\n" + message["body"] + "\n\n")
@@ -171,7 +171,7 @@ class Client(QThread):
 
 	def handleIncomingMessage(self, message): 
 		# message
-		print "________________________________________message\n", message, "\n________________________________________________"
+		#print "________________________________________message\n", message, "\n________________________________________________"
 		if message['type'] in ('normal', 'chat'):
 			if not message.match('message/groupchat_invite'):
 				self.emit(SIGNAL("debug"), "message from " + message["from"].bare + ":\n" + message["body"] + "\n\n")
@@ -187,8 +187,9 @@ class Client(QThread):
 		self.emit(SIGNAL("debug"), "message to " + tojid + ":\n" + message + "\n\n")
 	
 	def handleStatusChanged(self, presence):
+		#print "!!!!!!!!!!!!!!!!!!handleStatusChanged", presence, "!!!!!!!!!!!!!!!!!!"
 		# changed_status
-		if presence['muc']['nick'] == "":
+		if True:#presence['muc']['nick'] == "":
 			jid =  presence['from'].bare
 			if presence['show'] == "": show = "available"
 			else: show =  presence['show']
@@ -197,14 +198,16 @@ class Client(QThread):
 				show + "'\n\n")
 		
 	def handleGotOffline(self, presence):
+		#print "!!!!!!!!!!!!!!!!!!handleGotOffline", presence, "!!!!!!!!!!!!!!!!!!"
 		# got_offline
 		if presence['type'] == "unavailable":
 			self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'].bare, "offline"))
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
 	def handleGotOnline(self, presence):
-		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "offline"))
-		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
+		#print "!!!!!!!!!!!!!!!!!!handleGotOnline", presence, "!!!!!!!!!!!!!!!!!!"
+		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "online"))
+		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went online\n\n")
 	
 	def getGroups(self, jid):
 		if self.xmpp.client_roster[jid]["groups"]:
@@ -237,6 +240,9 @@ class Client(QThread):
 		
 	def changeStatus(self, show = "", status = ""):
 		# send a presence packet
-		self.xmpp.send_presence(pshow=SHOW[show], pstatus=status)
+		if show == 5: #offline
+			self.emit(SIGNAL("disconnect"))
+		else:
+			self.xmpp.send_presence(pshow=SHOW[show], pstatus=status)
 		self.emit(SIGNAL("debug"), "updated presence sent. show: '" + SHOW[show] + 
 			"'; status: '" + status + "'\n\n")

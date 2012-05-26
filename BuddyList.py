@@ -232,3 +232,28 @@ class BuddyList(AbstractContactList):
 			if item.type() == QTreeWidgetItem.UserType+1:
 				self.currentItem = item
 				self.menu.popup(self.mapToGlobal(pos))
+				
+	def clear(self):
+		for buddy in self.buddies:
+			try:
+				self.buddies[buddy].closeDialog()
+				self.buddies[buddy].messageDialog = None
+			except: pass
+		self.buddies = {}
+		
+		for el in self.tree:
+			self.removeGroup(el)
+		self.tree = {}
+		
+		for el in self.groups.values():
+			el.takeChildren()
+		self.groups = {}
+		
+		for el in self.muc.values():
+			try:
+				el.closeDialog()
+				el.MUCDialog = None
+			except: pass
+		self.muc = {}
+		
+		self.connection = None
