@@ -104,7 +104,7 @@
     <addaction name="act_connection"/>
     <addaction name="act_deconnection"/>
     <addaction name="separator"/>
-    <addaction name="act_add_a_buddy"/>
+    <addaction name="act_add_buddy"/>
     <addaction name="act_join_group_chat"/>
     <addaction name="separator"/>
     <addaction name="act_quit"/>
@@ -208,19 +208,19 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="act_add_a_buddy">
+  <action name="act_add_buddy">
    <property name="icon">
-    <iconset>
-     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</iconset>
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
    </property>
    <property name="text">
-    <string>Add a buddy</string>
+    <string>Add Buddy</string>
    </property>
   </action>
-  <action name="act_add_a_group">
+  <action name="act_add_group">
    <property name="icon">
-    <iconset>
-     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/plus.png</iconset>
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
    </property>
    <property name="text">
     <string>Add a group</string>
@@ -228,8 +228,8 @@
   </action>
   <action name="act_preferences">
    <property name="icon">
-    <iconset>
-     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/preferences.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/preferences.png</iconset>
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/preferences.png</normaloff>:/icons/icons/preferences.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Preferences</string>
@@ -244,8 +244,12 @@
    </property>
   </action>
   <action name="act_join_group_chat">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+   </property>
    <property name="text">
-    <string>Join Group Chat</string>
+    <string>Add/Join Group Chat</string>
    </property>
    <property name="toolTip">
     <string>Join Group Chat</string>

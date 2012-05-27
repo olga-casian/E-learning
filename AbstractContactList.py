@@ -31,7 +31,7 @@ class AbstractContactList(QTreeWidget):
 				self.addTopLevelItem(self.groups[group])
 				
 	def removeGroup(self, group):
-		if group:
+		if group != "Buddies":
 			self.takeTopLevelItem(self.indexOfTopLevelItem(self.groups[group]))
 			del self.groups[group]			
 	

@@ -8,6 +8,7 @@ sip.setapi('QVariant', 2)
 
 import logging
 import datetime
+import time
 import sys
 import re
 from PyQt4.QtGui import *
@@ -17,7 +18,7 @@ from PyQt4 import uic
 import interface.resource.res
 from BuddyList import BuddyList
 from im import Client
-from constants import SHOW, MUC_GROUP_TITLE, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC
+from constants import SHOW, MUC_GROUP_TITLE, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC, PATH_UI_ADD_BUDDY, DEFAULT_GROUP
 
 
 class MainWindow(QMainWindow):	
@@ -53,12 +54,13 @@ class MainWindow(QMainWindow):
 		self.im = None
 		
 		# Account
-		self.act_connection.triggered.connect(self.showConnectDialog)
+		self.connect(self.act_connection, SIGNAL("triggered()"), self.showConnectDialog)
 		self.connect(self.act_deconnection, SIGNAL("triggered()"), self.disconnect)
 		self.connect(self.act_join_group_chat, SIGNAL("triggered()"), self.showMUCDialog)
+		self.connect(self.act_add_buddy, SIGNAL("triggered()"), self.showBuddyDialog)
 		self.connect(self.act_quit, SIGNAL("triggered()"), self.quitApp)
 		self.act_join_group_chat.setEnabled(False)
-		self.act_add_a_buddy.setEnabled(False)
+		self.act_add_buddy.setEnabled(False)
 		
 		# View
 		self.act_away_buddies.setEnabled(False)
@@ -80,6 +82,56 @@ class MainWindow(QMainWindow):
 		self.aboutPyTalk = uic.loadUi(PATH_UI_ABOUT_PYTALK)
 		self.aboutPyTalk.show()
 		self.aboutPyTalk.raise_()
+		
+	def showBuddyDialog(self, jidFrom = None):
+		QDialog.__init__(self)
+		self.addNewBuddy = uic.loadUi(PATH_UI_ADD_BUDDY)
+		if jidFrom:
+			self.addNewBuddy.eln_jid.setText(jidFrom)
+		for el in self.BuddyList.groups:
+			self.addNewBuddy.cmb_group.addItem(el)
+		if DEFAULT_GROUP not in self.BuddyList.groups:
+			self.addNewBuddy.cmb_group.addItem(DEFAULT_GROUP)
+		self.addNewBuddy.show()
+		self.connect(self.addNewBuddy, SIGNAL("accepted()"), self.addBuddy)
+		
+	def addBuddy(self):
+		username = str(self.addNewBuddy.eln_jid.text())
+		server = str(self.addNewBuddy.cmb_server.currentText())
+		group = str(self.addNewBuddy.cmb_group.currentText())
+		jid = username + "@" + server
+		if jid == self.im.jabberID:
+			self.information("Error", "You cannot add yourself.")
+		elif jid not in self.BuddyList.buddies:
+			self.BuddyList.newBuddy(jid, group, "offline")
+			self.im.subscribeResp(True, jid, group)
+		else:
+			self.information("Contact already exists", "The contact that you want to add, " + jid + ", is already added.")
+		
+	def subscribeReq(self, jidFrom):
+		reply = QMessageBox.question(self, "Subscription request", "New subscription request from " + jidFrom + 
+			". Do you want to approve it and establish bidirectional subscription?", 
+			QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
+		if reply == QMessageBox.Yes:
+			if jidFrom not in self.BuddyList.buddies:
+				namePattern = """([\w\-][\w\-\.]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+				username = re.findall(namePattern, jidFrom)
+				self.showBuddyDialog(username[0])
+			else:
+				# if subscription req without adding to list
+				self.im.subscribeResp(True, jidFrom, self.im.getGroups(jidFrom))
+		else:
+			self.im.subscribeResp(False, jidFrom)
+			
+	def unsubscribedReq(self, jidFrom):
+		reply = QMessageBox.question(self, "Subscription removed", "Contact " + jidFrom + 
+			" removed subscription from you. You will always see him offline. Do you want to remove him from your contact list?", 
+			QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
+		if reply == QMessageBox.Yes:
+			self.BuddyList.removeBuddy(jidFrom)
+			self.im.unsubscribe(jidFrom)
 		
 	def showMUCDialog(self):
 		QDialog.__init__(self)
@@ -136,6 +188,7 @@ class MainWindow(QMainWindow):
 		
 		self.connectionDialog.eln_jid.setText(self.settings.value("jid", ""))
 		self.connectionDialog.eln_pass.setText(self.settings.value("password", ""))
+		self.connectionDialog.eln_resource.setText(self.settings.value("resource", ""))
 
 	def closeEvent(self, event):
 		# called on close (Ctrl+Q)
@@ -146,11 +199,10 @@ class MainWindow(QMainWindow):
 			
 		if reply == QMessageBox.Yes:			
 			try:
-				sys.exit(self.helpForm)
-			except AttributeError:
-				pass
-			self.disconnect()
-			event.accept()
+				self.disconnect()
+				event.accept()
+			except:
+				time.sleep(1)
 		else:
 			event.ignore()
 
@@ -171,22 +223,28 @@ class MainWindow(QMainWindow):
 			self.act_away_buddies.setEnabled(False)
 			self.act_offline_buddies.setEnabled(False)
 			self.act_join_group_chat.setEnabled(False)
+			self.act_add_buddy.setEnabled(False)
+
+	def failedAuth(self):
+		self.critical("Authentication failed", "Authentication failed, please check Username - Password combination.")
 
 	def connection(self):		
 		# settings for jid and pass
 		self.settings.setValue("jid", self.connectionDialog.eln_jid.text())
 		self.settings.setValue("password", self.connectionDialog.eln_pass.text())
+		self.settings.setValue("resource", self.connectionDialog.eln_resource.text())
 			
 		# latest status and show
-		self.clientJid = str(self.connectionDialog.eln_jid.text())
+		self.clientJid = str(self.connectionDialog.eln_jid.text() + "@" + self.connectionDialog.cmb_server.currentText())
 		self.settings.beginGroup(self.clientJid)
 		self.latestShow = self.settings.value("latestShow", "") # text as in SHOW
 		self.latestStatus = self.settings.value("latestStatus", "")
 		self.settings.endGroup()
 			
 		# starting xmpp thread
-		self.im = Client(self.connectionDialog.eln_jid.text(), self.connectionDialog.eln_pass.text(),
+		self.im = Client(self.clientJid, str(self.connectionDialog.eln_resource.text()), self.connectionDialog.eln_pass.text(),
 			self.latestShow, self.latestStatus)
+		self.connect(self.im, SIGNAL("failedAuth"), self.failedAuth)
 		self.im.start()
 			
 		self.cmb_status_box.setItemText(5, "Please wait...")
@@ -198,6 +256,10 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("message"), self.BuddyList.message)
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
 		self.connect(self.im, SIGNAL("inviteMUC"), self.inviteMUC)
+		self.connect(self.im, SIGNAL("subscribeReq"), self.subscribeReq)
+		self.connect(self.im, SIGNAL("unsubscribedReq"), self.unsubscribedReq)
+		self.connect(self.im, SIGNAL("sendPresenceToBuddy"), self.statusUpdate)
+		
 		self.connect(self.im, SIGNAL("critical"), self.critical)
 		self.connect(self.im, SIGNAL("information"), self.information)
 		self.connect(self.im, SIGNAL("debug"), self.debug)
@@ -208,6 +270,7 @@ class MainWindow(QMainWindow):
 		self.act_join_group_chat.setEnabled(True)
 		self.act_away_buddies.setEnabled(True)
 		self.act_offline_buddies.setEnabled(True)
+		self.act_add_buddy.setEnabled(True)
         
 		# construct contact list	
 		self.BuddyList.setConnection(self.im)
@@ -228,7 +291,7 @@ class MainWindow(QMainWindow):
 		else: self.cmb_status_box.setCurrentIndex(SHOW.index(self.latestShow))
 		self.cmb_status_box.setEnabled(True)
 	
-	def statusUpdate(self):
+	def statusUpdate(self, jidTo = None):
 		if SHOW[self.cmb_status_box.currentIndex()] != "offline":
 			# update settings
 			self.settings.beginGroup(self.clientJid)
@@ -238,7 +301,7 @@ class MainWindow(QMainWindow):
 			self.debug("new presence set. show: '" + SHOW[self.cmb_status_box.currentIndex()] +
 				"'; status: '" + self.eln_status_edit.text() + "'\n\n")
 			
-		self.im.changeStatus(self.cmb_status_box.currentIndex(), self.eln_status_edit.text())
+		self.im.changeStatus(self.cmb_status_box.currentIndex(), self.eln_status_edit.text(), jidTo)
             
 	def showLogs(self):
 		self.logsWidget.show()
@@ -261,7 +324,7 @@ class MainWindow(QMainWindow):
 	
 if __name__ == "__main__":
 	# Setup logging
-	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
+	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()

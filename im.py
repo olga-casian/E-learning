@@ -4,17 +4,27 @@ from sleekxmpp.xmlstream import ET
 import threading
 import re
 
-from constants import SHOW
+from constants import SHOW, DEFAULT_GROUP
 
 
 class Client(QThread): 
-	def __init__(self, jid, password, show, status):
+	def __init__(self, jid, resource, password, show, status):
 		QThread.__init__(self)
 		self.jabberID = jid
 		self.show = show
 		self.status = status
 		
-		self.xmpp = sleekxmpp.ClientXMPP(self.jabberID, password) 
+		# for subscription management
+		self.subscribe = []
+		self.subscribed = []
+		
+		if resource != "":
+			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID + "/" + resource, password) 
+		else:
+			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID, password)
+		
+		self.xmpp.auto_authorize = None
+		self.xmpp.auto_subscribe = None
 		
 		self.xmpp.register_plugin('xep_0030') # Service Discovery
 		self.xmpp.register_plugin('xep_0045') # Multi-User Chat
@@ -23,6 +33,7 @@ class Client(QThread):
 		self.xmpp.register_plugin('xep_0249') # groupchat_direct_invite
 		self.xmpp.register_plugin('xep_0030') # disco
 		
+		self.xmpp.add_event_handler("failed_auth", self.handleFailedAuth) 
 		self.xmpp.add_event_handler("session_start", self.handleXMPPConnected) 
 		self.xmpp.add_event_handler("message", self.handleIncomingMessage)
 		self.xmpp.add_event_handler("changed_status", self.handleStatusChanged)
@@ -41,9 +52,69 @@ class Client(QThread):
 		#self.xmpp.add_event_handler("muc::%s::got_online" % self.room, self.muc_online)
 		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)		
 		self.xmpp.add_event_handler("groupchat_direct_invite", self.handleGroupchatDirectInvite)
+		self.xmpp.add_event_handler('presence_unsubscribed', self.unsubscribedReq)
+		self.xmpp.add_event_handler("changed_subscription", self.handleXMPPPresenceSubscription)
 		
 		self.received = set()
 		self.presences_received = threading.Event()
+
+	def handleXMPPPresenceSubscription(self, subscription):
+		print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!subscription", subscription["type"]
+		print "entering ", self.subscribe, self.subscribed
+		userJID = subscription["from"].jid
+		if subscription["type"] == "subscribe":
+			if userJID in self.subscribed and userJID not in self.subscribe:
+				# i add
+				self.subscribe.append(userJID)
+				# ask if we want
+				self.emit(SIGNAL("subscribeReq"), userJID)
+			
+			elif userJID not in self.subscribed and userJID not in self.subscribe:
+				# he adds, starting
+				self.subscribe.append(userJID)
+				# ask if we want
+				self.emit(SIGNAL("subscribeReq"), userJID)
+			
+		elif subscription["type"] == "subscribed":
+			if userJID not in self.subscribed and userJID not in self.subscribe:
+				# i add
+				self.subscribed.append(userJID)
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
+				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
+				print "_________+_________SUBSCRIBE BOTH+++++++++", userJID
+				
+			elif userJID not in self.subscribed and userJID in self.subscribe:	
+				# he started, finishing
+				self.subscribed.append(userJID)
+				print "_________+_________SUBSCRIBE Both+++++++", userJID
+				
+		print "before ", self.subscribe, self.subscribed
+		if userJID in self.subscribe and userJID in self.subscribed:			
+			self.subscribe.remove(userJID)
+			self.subscribed.remove(userJID)
+		print "leaving ", self.subscribe, self.subscribed
+				
+	def subscribeResp(self, resp, userJID, group = None):
+		# approve or reject subscription
+		if resp:
+			print "enter ", self.subscribe, self.subscribed
+			if userJID not in self.subscribed and userJID in self.subscribe:
+				# he adds
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
+				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
+				print "_________+_________SUBSCRIBE FROM++++++++", userJID
+			elif userJID not in self.subscribed and userJID not in self.subscribe:
+				# i add, starting
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
+				
+			print "bef ", self.subscribe, self.subscribed
+			if userJID in self.subscribe and userJID in self.subscribed:
+				self.subscribe.remove(userJID)
+				self.subscribed.remove(userJID)
+			print "lea ", self.subscribe, self.subscribed
+		else:
+			self.xmpp.send_presence(pto = userJID, ptype = 'unsubscribed')
 
 	def stop(self):
 		self.xmpp.disconnect(wait=True)
@@ -56,6 +127,11 @@ class Client(QThread):
 		else:
 			self.emit(SIGNAL("debug"), "unable to connect\n\n")
 
+	def handleFailedAuth(self, failure):
+		# failed_auth
+		self.emit(SIGNAL("failedAuth"))
+		self.xmpp.disconnect(wait=True)
+		
 	def handleXMPPConnected(self, event): 
 		# session_start
 		self.xmpp.sendPresence(pstatus = self.status, pshow = self.show)
@@ -72,7 +148,74 @@ class Client(QThread):
 			self.disconnect()	
 			
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
+	"""
+	def subscribeReq(self, presence):
+		# presence_subscribe - new subscription request
+		#print "\n+++++++++++presence_subscribe ", presence, "+++++++++++++++++"
+		# If the subscription request is rejected.
+		self.subscribe.append(presence['from'])
+		self.emit(SIGNAL("subscribeReq"), str(presence['from']))
+		
+	def subscribeResp(self, resp, jid, group = None):
+		# approve or reject subscription
+		#print "\n+++++++++++++++responce ", group, type(group), jid, type(jid), "++++++++++++++++++"
+		if resp:
+			#print "entering__________\n", self.subscribe, self.subscribed, "\n___________"
+			if jid in self.subscribe and jid not in self.subscribed:
+				# responce to request
+				#print "responce to request"
+				self.xmpp.send_presence(pto = jid, ptype = 'subscribed')
+				self.subscribed.append(jid)
+				# bidirectional
+				self.xmpp.send_presence(pto = jid, ptype = 'subscribe')
+				self.emit(SIGNAL("sendPresenceToBuddy"))
+			elif jid not in self.subscribe and jid not in self.subscribed:
+				# we initiate subscription
+				#print "we initiate subscription"
+				#print "_________+_________SUBSCRIBE TO", jid
+				self.xmpp.send_presence(pto = jid, ptype = 'subscribe')
+				
+				self.subscribe.append(jid)
+				
+			if jid in self.subscribe and jid in self.subscribed:
+				
+				self.subscribe.remove(jid)
+				self.subscribed.remove(jid)
+				#self.emit(SIGNAL("subscribeReq"), str(jid))
+				#print "_________+_________SUBSCRIBE BOTH (if i add), FROM (if smb adds+to show item)", jid
+				
+			#print "leaving__________\n", self.subscribe, self.subscribed, "\n___________"
+		else:
+			self.xmpp.send_presence(pto = jid, ptype = 'unsubscribed')
 
+	def subscribed(self, presence):
+		# presence_subscribed
+		print "\n!!!!!!!!!!!!!presence_subscribed ", presence, "!!!!!!!!!!!!!!!!!!!!"
+		# Store the new subscription state, somehow. Here we use a backend object.
+		#self.subscribed.append(presence['from'])
+
+		# Send a new presence update to the subscriber.
+		#self.xmpp.send_presence(pto = presence['from'])
+		#print "entering__________\n", self.subscribe, self.subscribed, "\n___________"
+		#if presence['from'] in self.subscribe and presence['from'] in self.subscribed:
+		#	self.subscribe.remove(presence['from'])
+		#	self.subscribed.remove(presence['from'])
+			#print "_________+_________SUBSCRIBE BOTH", presence['from']
+		#print "leaving__________\n", self.subscribe, self.subscribed, "\n___________"
+		"""		
+	def unsubscribe(self, jid):
+		# remove subscription from contact
+		self.xmpp.send_presence(pto = jid, ptype = 'unsubscribe')
+		self.xmpp.update_roster(jid, subscription='remove')
+		if jid in self.subscribe: self.subscribe.remove(jid)
+		if jid in self.subscribed: self.subscribed.remove(jid)
+	
+	def unsubscribedReq(self, presence):
+		# presence_unsubscribed - approvement of removing subscription
+		self.emit(SIGNAL("unsubscribedReq"), str(presence['from']))
+		if presence['from'] in self.subscribe: self.subscribe.remove(presence['from'])
+		if presence['from'] in self.subscribed: self.subscribed.remove(presence['from'])
+	
 	def dicsoveryJid(self, jid):
 		try:
 			return self.xmpp.plugin['xep_0030'].get_info(jid)
@@ -187,7 +330,6 @@ class Client(QThread):
 		self.emit(SIGNAL("debug"), "message to " + tojid + ":\n" + message + "\n\n")
 	
 	def handleStatusChanged(self, presence):
-		#print "!!!!!!!!!!!!!!!!!!handleStatusChanged", presence, "!!!!!!!!!!!!!!!!!!"
 		# changed_status
 		if True:#presence['muc']['nick'] == "":
 			jid =  presence['from'].bare
@@ -198,14 +340,12 @@ class Client(QThread):
 				show + "'\n\n")
 		
 	def handleGotOffline(self, presence):
-		#print "!!!!!!!!!!!!!!!!!!handleGotOffline", presence, "!!!!!!!!!!!!!!!!!!"
 		# got_offline
 		if presence['type'] == "unavailable":
 			self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'].bare, "offline"))
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
 	def handleGotOnline(self, presence):
-		#print "!!!!!!!!!!!!!!!!!!handleGotOnline", presence, "!!!!!!!!!!!!!!!!!!"
 		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "online"))
 		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went online\n\n")
 	
@@ -213,7 +353,7 @@ class Client(QThread):
 		if self.xmpp.client_roster[jid]["groups"]:
 			return self.xmpp.client_roster[jid]["groups"]
 		else:
-			return ["Buddies"]
+			return [DEFAULT_GROUP]
 			
 	def getShow(self, jids):
 		if self.xmpp.client_roster.presence(jids):
@@ -238,11 +378,14 @@ class Client(QThread):
 		nick = re.findall(jidNickPattern, jid)
 		return nick[0]
 		
-	def changeStatus(self, show = "", status = ""):
+	def changeStatus(self, show = "", status = "", jidTo = None):
 		# send a presence packet
 		if show == 5: #offline
 			self.emit(SIGNAL("disconnect"))
 		else:
-			self.xmpp.send_presence(pshow=SHOW[show], pstatus=status)
+			if jidTo:
+				self.xmpp.send_presence(pshow = SHOW[show], pstatus = status, pto = jidTo)
+			else:
+				self.xmpp.send_presence(pshow = SHOW[show], pstatus = status)
 		self.emit(SIGNAL("debug"), "updated presence sent. show: '" + SHOW[show] + 
 			"'; status: '" + status + "'\n\n")

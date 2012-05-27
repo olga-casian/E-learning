@@ -1,47 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dlg_join_muc</class>
- <widget class="QDialog" name="dlg_join_muc">
+ <class>dlg_add_buddy</class>
+ <widget class="QDialog" name="dlg_add_buddy">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>113</height>
+    <height>147</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>300</width>
-    <height>113</height>
+    <height>147</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>16777215</width>
-    <height>113</height>
+    <height>147</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>Join Group Chat</string>
+   <string>Add new buddy</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource/res.qrc">
     <normaloff>:/icons/icons/logotype.png</normaloff>:/icons/icons/logotype.png</iconset>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <property name="fieldGrowthPolicy">
-    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-   </property>
    <item row="0" column="0">
-    <widget class="QLabel" name="lab_room">
+    <widget class="QLabel" name="lab_jid">
      <property name="text">
-      <string>Room:</string>
+      <string>Username:</string>
      </property>
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QLineEdit" name="eln_room"/>
+    <widget class="QLineEdit" name="eln_jid"/>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="lab_server">
@@ -54,13 +51,23 @@
     <widget class="QComboBox" name="cmb_server">
      <item>
       <property name="text">
-       <string>conference.talkr.im</string>
+       <string>talkr.im</string>
       </property>
      </item>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="dbb_button_box">
+   <item row="2" column="0">
+    <widget class="QLabel" name="lab_group">
+     <property name="text">
+      <string>Group:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="cmb_group"/>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -76,9 +83,9 @@
  </resources>
  <connections>
   <connection>
-   <sender>dbb_button_box</sender>
+   <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dlg_join_muc</receiver>
+   <receiver>dlg_add_buddy</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -92,9 +99,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>dbb_button_box</sender>
+   <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dlg_join_muc</receiver>
+   <receiver>dlg_add_buddy</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

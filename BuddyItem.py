@@ -19,16 +19,18 @@ class BuddyItem(AbstractListItem):
 		self.buddyList = buddyList
 		self.setStatus(show)
 		
+	def setStatus(self, show, subscription = None):
+		self.show = show
+		fileShow = "interface/resource/icons/status/" + str(self.show) + ".png"
+		self.setIcon(0, QIcon(fileShow))
+		
 		name = self.connection.getName(self.jid)
 		if name is not self.jid:
 			toolTip = name + " <" + str(self.jid) + ">"
 		else: toolTip = "<" + str(self.jid) + ">"
+		if subscription:
+			toolTip += "\nSubscription: " + subscription
 		self.setToolTip(0, toolTip)
-		
-	def setStatus(self, show):
-		self.show = show
-		fileShow = "interface/resource/icons/status/" + str(self.show) + ".png"
-		self.setIcon(0, QIcon(fileShow))
 
 	def createMsgDialog(self):
 		try:
@@ -40,7 +42,9 @@ class BuddyItem(AbstractListItem):
 			self.messageDialog.raise_()
 
 	def closeDialog(self):
-		self.messageDialog.close()
+		try:
+			self.messageDialog.close()
+		except: pass
 
 	def receiveMessage(self, buddy, msg):
 		self.createMsgDialog()

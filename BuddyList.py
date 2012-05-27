@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem
+from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem, QMessageBox
 from PyQt4.QtCore import Qt, SIGNAL, QSettings
 import time, re
 
@@ -42,7 +42,38 @@ class BuddyList(AbstractContactList):
 		
 	def remove(self):
 		if type(self.currentItem) is MUCItem:
-			self.removeMUC()
+			reply = QMessageBox.question(self, "Remove Group Chat", "Are you sure to leave group chat " + 
+					self.currentItem.jid + "?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+			if reply == QMessageBox.Yes:
+				self.removeMUC()
+				
+		elif type(self.currentItem) is BuddyItem:
+			reply = QMessageBox.question(self, "Remove Buddy", "Are you sure to remove " + self.currentItem.jid + 
+					" from your contact list and unsubscribe?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+			if reply == QMessageBox.Yes:			
+				self.removeBuddy(self.currentItem.jid)
+
+	def removeBuddy(self, jid):
+		# close windows
+		self.buddies[jid].closeDialog()
+		
+		# remove from tree
+		for groupDict in self.tree.values():
+			for jidItem in groupDict.keys():
+				if jidItem == jid:
+					del groupDict[jidItem]
+			
+		# remove from group
+		for group in self.groups:
+			for nr in range(self.groups[group].childCount()):
+				if str(self.groups[group].child(nr)) == str(jid):
+					self.groups[group].removeChild(self.groups[group].child(nr))
+						
+		# remove from buddies	
+		del self.buddies[jid]
+		
+		self.hideGroups()
+		self.connection.unsubscribe(str(jid))
 
 	def removeMUC(self):
 		match = 0
@@ -87,6 +118,17 @@ class BuddyList(AbstractContactList):
 					# send unavailable presence:
 					room = room[:-1] + "@conference.talkr.im"
 					self.connection.leaveMUC(room)
+	
+	def newBuddy(self, jid, group, show = None):
+		self.addGroup(group)
+		if jid not in self.buddies.keys():
+			if not show:
+				show = self.connection.getShow(jid)
+			self.buddies[jid] = BuddyItem(self, self.groups[group], jid, show, self.connection)
+			self.buddies[jid].setName(self.connection.getName(jid))
+		self.groups[group].addChild(self.buddies[jid])
+		self.tree[group][jid] = self.buddies[jid]
+		self.hideGroups()
 				
 	def constructMUC(self):
 		# get MUC from settings
@@ -95,25 +137,29 @@ class BuddyList(AbstractContactList):
 		mucs = self.settings.value("MUC", "")
 		self.settings.endGroup()
 		
-		if mucs is not None:
-			self.addGroup(MUC_GROUP_TITLE)
+		if mucs == "":
+			return
+		if mucs is None:
+			return
 			
-			# muc from settings to list		
-			emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
-			for mucChat in mucs:
-				jidsFromOneMUC = re.findall(emailPattern, mucChat)
+		self.addGroup(MUC_GROUP_TITLE)
+			
+		# muc from settings to list		
+		emailPattern = """[\w\-][\w\-\.]+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+		for mucChat in mucs:
+			jidsFromOneMUC = re.findall(emailPattern, mucChat)
+			
+			# add MUC item to list
+			self.muc[str(jidsFromOneMUC)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jidsFromOneMUC, "-", self.connection)
 				
-				# add MUC item to list
-				self.muc[str(jidsFromOneMUC)] = MUCItem(self, self.groups[MUC_GROUP_TITLE], jidsFromOneMUC, "-", self.connection)
+			titleMUC = "Group chat (" + str(len(jidsFromOneMUC)) + ")"
+			self.muc[str(jidsFromOneMUC)].setName(titleMUC)
+			
+			self.groups[MUC_GROUP_TITLE].addChild(self.muc[str(jidsFromOneMUC)])
+			self.tree[MUC_GROUP_TITLE][str(jidsFromOneMUC)] = self.muc[str(jidsFromOneMUC)]
 				
-				titleMUC = "Group chat (" + str(len(jidsFromOneMUC)) + ")"
-				self.muc[str(jidsFromOneMUC)].setName(titleMUC)
-				
-				self.groups[MUC_GROUP_TITLE].addChild(self.muc[str(jidsFromOneMUC)])
-				self.tree[MUC_GROUP_TITLE][str(jidsFromOneMUC)] = self.muc[str(jidsFromOneMUC)]
-				
-				# join room
-				self.connection.createMUC(jidsFromOneMUC)
+			# join room
+			self.connection.createMUC(jidsFromOneMUC)
 				
 	def sendMessage(self, item, col):
 		if item and item.type() == QTreeWidgetItem.UserType + 1:
