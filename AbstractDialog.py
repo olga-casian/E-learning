@@ -53,7 +53,6 @@ class AbstractDialog(QWidget):
 		self.messageTextEdit = MessageTextEdit(self)
 		self.vlt_message_widget.insertWidget(-1, self.messageTextEdit)		
 		self.tbr_browser.setPlainText("")
-		#self.tbr_browser.setOpenLinks(True)
 		self.messageTextEdit.setFocus()
 		
 		# chat members		

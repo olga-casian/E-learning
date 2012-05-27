@@ -2,7 +2,7 @@ from PyQt4.QtGui import QMenu, QIcon, QTreeWidgetItem, QMessageBox
 from PyQt4.QtCore import Qt, SIGNAL, QSettings
 import time, re
 
-from constants import MUC_GROUP_TITLE
+from constants import MUC_GROUP_TITLE, DEFAULT_GROUP
 from BuddyItem import BuddyItem
 from AbstractContactList import AbstractContactList
 from MUCItem import MUCItem

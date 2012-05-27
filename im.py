@@ -23,6 +23,7 @@ class Client(QThread):
 		else:
 			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID, password)
 		
+		# custom subscription handling
 		self.xmpp.auto_authorize = None
 		self.xmpp.auto_subscribe = None
 		
