@@ -52,6 +52,7 @@ class Client(QThread):
 		#self.xmpp.add_event_handler("muc::%s::got_online" % self.room, self.muc_online)
 		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)		
 		self.xmpp.add_event_handler("groupchat_direct_invite", self.handleGroupchatDirectInvite)
+		self.xmpp.add_event_handler('presence_unsubscribe', self.unsubscribeReq)
 		self.xmpp.add_event_handler('presence_unsubscribed', self.unsubscribedReq)
 		self.xmpp.add_event_handler("changed_subscription", self.handleChangedSubscription)
 		
@@ -153,6 +154,14 @@ class Client(QThread):
 	def unsubscribedReq(self, presence):
 		# presence_unsubscribed - approvement of removing subscription
 		self.emit(SIGNAL("unsubscribedReq"), str(presence['from']))
+		if presence['from'] in self.subscribe: self.subscribe.remove(presence['from'])
+		if presence['from'] in self.subscribed: self.subscribed.remove(presence['from'])
+		self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'], "", self.getSubscription(presence['from'])))
+		
+	def unsubscribeReq(self, presence):
+		# presence_unsubscribed - approvement of removing subscription
+		self.emit(SIGNAL("information"), "Subscription update", "User " + presence['from'] + 
+			" has unsubscribed from receiving your status notifications.")
 		if presence['from'] in self.subscribe: self.subscribe.remove(presence['from'])
 		if presence['from'] in self.subscribed: self.subscribed.remove(presence['from'])
 		self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'], "", self.getSubscription(presence['from'])))
