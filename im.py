@@ -53,68 +53,10 @@ class Client(QThread):
 		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)		
 		self.xmpp.add_event_handler("groupchat_direct_invite", self.handleGroupchatDirectInvite)
 		self.xmpp.add_event_handler('presence_unsubscribed', self.unsubscribedReq)
-		self.xmpp.add_event_handler("changed_subscription", self.handleXMPPPresenceSubscription)
+		self.xmpp.add_event_handler("changed_subscription", self.handleChangedSubscription)
 		
 		self.received = set()
 		self.presences_received = threading.Event()
-
-	def handleXMPPPresenceSubscription(self, subscription):
-		print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!subscription", subscription["type"]
-		print "entering ", self.subscribe, self.subscribed
-		userJID = subscription["from"].jid
-		if subscription["type"] == "subscribe":
-			if userJID in self.subscribed and userJID not in self.subscribe:
-				# i add
-				self.subscribe.append(userJID)
-				# ask if we want
-				self.emit(SIGNAL("subscribeReq"), userJID)
-			
-			elif userJID not in self.subscribed and userJID not in self.subscribe:
-				# he adds, starting
-				self.subscribe.append(userJID)
-				# ask if we want
-				self.emit(SIGNAL("subscribeReq"), userJID)
-			
-		elif subscription["type"] == "subscribed":
-			if userJID not in self.subscribed and userJID not in self.subscribe:
-				# i add
-				self.subscribed.append(userJID)
-				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
-				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
-				print "_________+_________SUBSCRIBE BOTH+++++++++", userJID
-				
-			elif userJID not in self.subscribed and userJID in self.subscribe:	
-				# he started, finishing
-				self.subscribed.append(userJID)
-				print "_________+_________SUBSCRIBE Both+++++++", userJID
-				
-		print "before ", self.subscribe, self.subscribed
-		if userJID in self.subscribe and userJID in self.subscribed:			
-			self.subscribe.remove(userJID)
-			self.subscribed.remove(userJID)
-		print "leaving ", self.subscribe, self.subscribed
-				
-	def subscribeResp(self, resp, userJID, group = None):
-		# approve or reject subscription
-		if resp:
-			print "enter ", self.subscribe, self.subscribed
-			if userJID not in self.subscribed and userJID in self.subscribe:
-				# he adds
-				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
-				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
-				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
-				print "_________+_________SUBSCRIBE FROM++++++++", userJID
-			elif userJID not in self.subscribed and userJID not in self.subscribe:
-				# i add, starting
-				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
-				
-			print "bef ", self.subscribe, self.subscribed
-			if userJID in self.subscribe and userJID in self.subscribed:
-				self.subscribe.remove(userJID)
-				self.subscribed.remove(userJID)
-			print "lea ", self.subscribe, self.subscribed
-		else:
-			self.xmpp.send_presence(pto = userJID, ptype = 'unsubscribed')
 
 	def stop(self):
 		self.xmpp.disconnect(wait=True)
@@ -146,63 +88,61 @@ class Client(QThread):
 		except IqTimeout:
 			self.emit(SIGNAL("debug"), "server is taking too long to respond\n\n")
 			self.disconnect()	
-			
+				
 		self.emit(SIGNAL("sessionStarted(PyQt_PyObject)"), self.xmpp.client_roster.keys())
-	"""
-	def subscribeReq(self, presence):
-		# presence_subscribe - new subscription request
-		#print "\n+++++++++++presence_subscribe ", presence, "+++++++++++++++++"
-		# If the subscription request is rejected.
-		self.subscribe.append(presence['from'])
-		self.emit(SIGNAL("subscribeReq"), str(presence['from']))
 		
-	def subscribeResp(self, resp, jid, group = None):
+	def handleChangedSubscription(self, subscription):
+		# changed_subscription
+		userJID = subscription["from"].jid
+		if subscription["type"] == "subscribe":
+			if userJID in self.subscribed and userJID not in self.subscribe:
+				# i add
+				self.subscribe.append(userJID)
+				# ask if we want
+				self.emit(SIGNAL("subscribeReq"), userJID)
+			
+			elif userJID not in self.subscribed and userJID not in self.subscribe:
+				# he adds, starting
+				self.subscribe.append(userJID)
+				# ask if we want
+				self.emit(SIGNAL("subscribeReq"), userJID)
+			
+		elif subscription["type"] == "subscribed":
+			if userJID not in self.subscribed and userJID not in self.subscribe:
+				# i add
+				self.subscribed.append(userJID)
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
+				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
+				self.emit(SIGNAL("presence(PyQt_PyObject)"), (userJID, "", self.getSubscription(userJID)))
+				
+			elif userJID not in self.subscribed and userJID in self.subscribe:	
+				# he started, finishing
+				self.subscribed.append(userJID)
+				self.emit(SIGNAL("presence(PyQt_PyObject)"), (userJID, "", self.getSubscription(userJID)))
+				
+		if userJID in self.subscribe and userJID in self.subscribed:			
+			self.subscribe.remove(userJID)
+			self.subscribed.remove(userJID)
+				
+	def subscribeResp(self, resp, userJID, group = None):
 		# approve or reject subscription
-		#print "\n+++++++++++++++responce ", group, type(group), jid, type(jid), "++++++++++++++++++"
 		if resp:
-			#print "entering__________\n", self.subscribe, self.subscribed, "\n___________"
-			if jid in self.subscribe and jid not in self.subscribed:
-				# responce to request
-				#print "responce to request"
-				self.xmpp.send_presence(pto = jid, ptype = 'subscribed')
-				self.subscribed.append(jid)
-				# bidirectional
-				self.xmpp.send_presence(pto = jid, ptype = 'subscribe')
-				self.emit(SIGNAL("sendPresenceToBuddy"))
-			elif jid not in self.subscribe and jid not in self.subscribed:
-				# we initiate subscription
-				#print "we initiate subscription"
-				#print "_________+_________SUBSCRIBE TO", jid
-				self.xmpp.send_presence(pto = jid, ptype = 'subscribe')
+			if userJID not in self.subscribed and userJID in self.subscribe:
+				# he adds
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribed')
+				self.emit(SIGNAL("sendPresenceToBuddy"), userJID)
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
+				self.emit(SIGNAL("presence(PyQt_PyObject)"), (userJID, "", self.getSubscription(userJID)))
+			elif userJID not in self.subscribed and userJID not in self.subscribe:
+				# i add, starting
+				self.xmpp.send_presence(pto = userJID, ptype = 'subscribe')
 				
-				self.subscribe.append(jid)
-				
-			if jid in self.subscribe and jid in self.subscribed:
-				
-				self.subscribe.remove(jid)
-				self.subscribed.remove(jid)
-				#self.emit(SIGNAL("subscribeReq"), str(jid))
-				#print "_________+_________SUBSCRIBE BOTH (if i add), FROM (if smb adds+to show item)", jid
-				
-			#print "leaving__________\n", self.subscribe, self.subscribed, "\n___________"
+			if userJID in self.subscribe and userJID in self.subscribed:
+				self.subscribe.remove(userJID)
+				self.subscribed.remove(userJID)
 		else:
-			self.xmpp.send_presence(pto = jid, ptype = 'unsubscribed')
-
-	def subscribed(self, presence):
-		# presence_subscribed
-		print "\n!!!!!!!!!!!!!presence_subscribed ", presence, "!!!!!!!!!!!!!!!!!!!!"
-		# Store the new subscription state, somehow. Here we use a backend object.
-		#self.subscribed.append(presence['from'])
-
-		# Send a new presence update to the subscriber.
-		#self.xmpp.send_presence(pto = presence['from'])
-		#print "entering__________\n", self.subscribe, self.subscribed, "\n___________"
-		#if presence['from'] in self.subscribe and presence['from'] in self.subscribed:
-		#	self.subscribe.remove(presence['from'])
-		#	self.subscribed.remove(presence['from'])
-			#print "_________+_________SUBSCRIBE BOTH", presence['from']
-		#print "leaving__________\n", self.subscribe, self.subscribed, "\n___________"
-		"""		
+			self.xmpp.send_presence(pto = userJID, ptype = 'unsubscribed')	
+		
 	def unsubscribe(self, jid):
 		# remove subscription from contact
 		self.xmpp.send_presence(pto = jid, ptype = 'unsubscribe')
@@ -215,6 +155,7 @@ class Client(QThread):
 		self.emit(SIGNAL("unsubscribedReq"), str(presence['from']))
 		if presence['from'] in self.subscribe: self.subscribe.remove(presence['from'])
 		if presence['from'] in self.subscribed: self.subscribed.remove(presence['from'])
+		self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'], "", self.getSubscription(presence['from'])))
 	
 	def dicsoveryJid(self, jid):
 		try:
@@ -335,18 +276,20 @@ class Client(QThread):
 			jid =  presence['from'].bare
 			if presence['show'] == "": show = "available"
 			else: show =  presence['show']
-			self.emit(SIGNAL("presence(PyQt_PyObject)"), (jid, show))
+			self.emit(SIGNAL("presence(PyQt_PyObject)"), (jid, show, self.getSubscription(jid)))
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " has new show: '" + 
 				show + "'\n\n")
 		
 	def handleGotOffline(self, presence):
 		# got_offline
 		if presence['type'] == "unavailable":
-			self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'].bare, "offline"))
+			self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'].bare, "offline", 
+				self.getSubscription(presence['from'].bare)))
 			self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went offline\n\n")
 	
 	def handleGotOnline(self, presence):
-		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "online"))
+		self.emit(SIGNAL("presenceOnline(PyQt_PyObject)"), (presence['from'].bare, "online", 
+			self.getSubscription(presence['from'].bare)))
 		self.emit(SIGNAL("debug"), "user " + presence['from'].bare + " went online\n\n")
 	
 	def getGroups(self, jid):
@@ -354,6 +297,12 @@ class Client(QThread):
 			return self.xmpp.client_roster[jid]["groups"]
 		else:
 			return [DEFAULT_GROUP]
+			
+	def getSubscription(self, jid):
+		if self.xmpp.client_roster[jid]["subscription"]:
+			return self.xmpp.client_roster[jid]["subscription"]
+		else:
+			return False
 			
 	def getShow(self, jids):
 		if self.xmpp.client_roster.presence(jids):

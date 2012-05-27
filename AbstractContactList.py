@@ -36,10 +36,10 @@ class AbstractContactList(QTreeWidget):
 			del self.groups[group]			
 	
 	def presence(self, data):
-		jid, show = data
+		jid, show, subscription = data
 		if str(jid) is not self.connection.jabberID:
 			try:
-				self.buddies[str(jid)].setStatus(show)
+				self.buddies[str(jid)].setStatus(show, subscription)
 				self.hideGroups()
 			except: 
 				pass

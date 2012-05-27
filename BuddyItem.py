@@ -19,8 +19,8 @@ class BuddyItem(AbstractListItem):
 		self.buddyList = buddyList
 		self.setStatus(show)
 		
-	def setStatus(self, show, subscription = None):
-		self.show = show
+	def setStatus(self, show = "", subscription = ""):
+		if show != "": self.show = show
 		fileShow = "interface/resource/icons/status/" + str(self.show) + ".png"
 		self.setIcon(0, QIcon(fileShow))
 		
@@ -28,7 +28,7 @@ class BuddyItem(AbstractListItem):
 		if name is not self.jid:
 			toolTip = name + " <" + str(self.jid) + ">"
 		else: toolTip = "<" + str(self.jid) + ">"
-		if subscription:
+		if subscription != "":
 			toolTip += "\nSubscription: " + subscription
 		self.setToolTip(0, toolTip)
 

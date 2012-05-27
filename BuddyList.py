@@ -42,8 +42,11 @@ class BuddyList(AbstractContactList):
 		
 	def remove(self):
 		if type(self.currentItem) is MUCItem:
+			print self.currentItem.jid
 			reply = QMessageBox.question(self, "Remove Group Chat", "Are you sure to leave group chat " + 
-					self.currentItem.jid + "?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+					self.connection.jidlistToRoom(self.currentItem.jid) + 
+					"? All private messages through this chat will be closed as well.", 
+					QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 			if reply == QMessageBox.Yes:
 				self.removeMUC()
 				

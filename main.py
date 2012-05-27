@@ -100,10 +100,13 @@ class MainWindow(QMainWindow):
 		server = str(self.addNewBuddy.cmb_server.currentText())
 		group = str(self.addNewBuddy.cmb_group.currentText())
 		jid = username + "@" + server
+		#if not self.im.dicsoveryJid(str(jid)):
+		#	self.information("Error", "The contact you want to add, " + jid + ", does not exist.")
 		if jid == self.im.jabberID:
 			self.information("Error", "You cannot add yourself.")
 		elif jid not in self.BuddyList.buddies:
 			self.BuddyList.newBuddy(jid, group, "offline")
+			self.BuddyList.presence((jid, "offline", self.im.getSubscription(jid)))
 			self.im.subscribeResp(True, jid, group)
 		else:
 			self.information("Contact already exists", "The contact that you want to add, " + jid + ", is already added.")
@@ -324,7 +327,7 @@ class MainWindow(QMainWindow):
 	
 if __name__ == "__main__":
 	# Setup logging
-	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
+	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-8s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()
