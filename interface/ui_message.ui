@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>726</width>
+    <height>456</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,7 +23,7 @@
    <iconset resource="resource/res.qrc">
     <normaloff>:/icons/icons/logotype.png</normaloff>:/icons/icons/logotype.png</iconset>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
     <layout class="QVBoxLayout" name="vlt_message_widget">
      <item>
@@ -54,13 +54,26 @@ p, li { white-space: pre-wrap; }
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
+           <width>60</width>
            <height>20</height>
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_multimedia">
+         <property name="text">
+          <string>Multimedia</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_members">
@@ -103,7 +116,190 @@ p, li { white-space: pre-wrap; }
      </item>
     </layout>
    </item>
+   <item>
+    <layout class="QVBoxLayout" name="vlt_top">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="btn_color">
+         <property name="text">
+          <string>Color</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/color.png</normaloff>:/icons/icons/canvas/color.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_width">
+         <property name="text">
+          <string>Width</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/width.png</normaloff>:/icons/icons/canvas/width.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_save">
+         <property name="text">
+          <string>Save</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_add">
+         <property name="text">
+          <string>Add</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_undo">
+         <property name="text">
+          <string>Undo</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/undo.png</normaloff>:/icons/icons/canvas/undo.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_clear">
+         <property name="text">
+          <string>Clear</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/clear.png</normaloff>:/icons/icons/canvas/clear.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="hlt_audio_save">
+       <item>
+        <widget class="QPushButton" name="btn_canvas_session">
+         <property name="minimumSize">
+          <size>
+           <width>160</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Turn on/off canvas session</string>
+         </property>
+         <property name="text">
+          <string>Canvas session OFF</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+         <property name="default">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_audio_session">
+         <property name="minimumSize">
+          <size>
+           <width>160</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Turn on/off audio session</string>
+         </property>
+         <property name="text">
+          <string>Audio session OFF</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_mute">
+         <property name="maximumSize">
+          <size>
+           <width>25</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Mute   Shift+M</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/audio_on.png</normaloff>
+           <normalon>:/icons/icons/canvas/audio_off.png</normalon>:/icons/icons/canvas/audio_on.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>25</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="shortcut">
+          <string>Shift+M</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
   </layout>
+  <zorder></zorder>
+  <zorder></zorder>
+  <zorder>layoutWidget</zorder>
+  <zorder>buttonBox</zorder>
+  <zorder></zorder>
+  <zorder>btn_width</zorder>
+  <zorder>btn_clear</zorder>
  </widget>
  <resources>
   <include location="resource/res.qrc"/>

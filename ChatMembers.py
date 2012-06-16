@@ -9,7 +9,7 @@ class ChatMembers(AbstractContactList):
 		AbstractContactList.__init__(self, parent)
 		
 		self.hide()
-		self.setMaximumWidth(250)
+		self.setMaximumWidth(200)
 		
 		self.parent = parent
 		self.members = True

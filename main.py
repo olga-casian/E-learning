@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
 		else:
 			self.im.subscribeResp(False, jidFrom)
 			
-	def unsubscribedReq(self, jidFrom):
+	def handleUnsubscribedReq(self, jidFrom):
 		reply = QMessageBox.question(self, "Subscription removed", "Contact " + jidFrom + 
 			" removed subscription from you. You will always see him offline. Do you want to remove him from your contact list?", 
 			QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("messageMUC"), self.BuddyList.messageMUC)
 		self.connect(self.im, SIGNAL("inviteMUC"), self.inviteMUC)
 		self.connect(self.im, SIGNAL("subscribeReq"), self.subscribeReq)
-		self.connect(self.im, SIGNAL("unsubscribedReq"), self.unsubscribedReq)
+		self.connect(self.im, SIGNAL("handleUnsubscribedReq"), self.handleUnsubscribedReq)
 		self.connect(self.im, SIGNAL("sendPresenceToBuddy"), self.statusUpdate)
 		
 		self.connect(self.im, SIGNAL("critical"), self.critical)

@@ -73,9 +73,50 @@ class AbstractDialog(QWidget):
 			# never show chat members if it is a privite chat with muc member
 			self.btn_members.hide()
 
+		# multimedia	
+		from Multimedia import ScribbleArea
+		self.scribbleArea = ScribbleArea(self)
+		self.vlt_top.insertWidget(1, self.scribbleArea)
+		self.showMultimedia(False)
+
 		#self.connect(self.tbr_browser, SIGNAL("anchorClicked(QUrl)"), self.openLink)
 		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembersLayout)		
 		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)
+		
+		self.connect(self.btn_multimedia, SIGNAL("toggled(bool)"), self.showMultimedia)
+
+	# multimedia related methods
+
+	def showMultimedia(self, checked):
+		if checked:
+			self.scribbleArea.show()
+			
+			self.btn_color.show()
+			self.btn_width.show()
+			self.btn_save.show()
+			self.btn_add.show()
+			self.btn_undo.show()
+			self.btn_clear.show()
+			self.btn_canvas_session.show()
+			self.btn_audio_session.show()
+			self.btn_mute.show()
+		else:
+			self.scribbleArea.hide()
+			
+			self.btn_color.hide()
+			self.btn_width.hide()
+			self.btn_save.hide()
+			self.btn_add.hide()
+			self.btn_undo.hide()
+			self.btn_clear.hide()
+			self.btn_canvas_session.hide()
+			self.btn_audio_session.hide()
+			self.btn_mute.hide()
+			
+			#self.vsr_sessions.hide()
+			#self.spacerItem2.hide()
+
+	# =====
 
 	def dialogTitle(self):
 		if len(self.jidTo) is 1:

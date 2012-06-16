@@ -3,6 +3,7 @@ import sleekxmpp
 from sleekxmpp.xmlstream import ET
 import threading
 import re
+import hashlib
 
 from constants import SHOW, DEFAULT_GROUP
 
@@ -19,9 +20,10 @@ class Client(QThread):
 		self.subscribed = []
 		
 		if resource != "":
+			#self.xmpp = sleekxmpp.ClientXMPP(self.jabberID + "/" + resource, hashlib.sha1(password).hexdigest())#password)
 			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID + "/" + resource, password) 
 		else:
-			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID, password)
+			self.xmpp = sleekxmpp.ClientXMPP(self.jabberID, hashlib.sha1(password).hexdigest())#password)
 		
 		# custom subscription handling
 		self.xmpp.auto_authorize = None
@@ -53,8 +55,8 @@ class Client(QThread):
 		#self.xmpp.add_event_handler("muc::%s::got_online" % self.room, self.muc_online)
 		self.xmpp.add_event_handler("groupchat_presence", self.handleGroupchatPresence)		
 		self.xmpp.add_event_handler("groupchat_direct_invite", self.handleGroupchatDirectInvite)
-		self.xmpp.add_event_handler('presence_unsubscribe', self.unsubscribeReq)
-		self.xmpp.add_event_handler('presence_unsubscribed', self.unsubscribedReq)
+		self.xmpp.add_event_handler('presence_unsubscribe', self.handleUnsubscribeReq)
+		self.xmpp.add_event_handler('presence_unsubscribed', self.handleUnsubscribedReq)
 		self.xmpp.add_event_handler("changed_subscription", self.handleChangedSubscription)
 		
 		self.received = set()
@@ -152,14 +154,14 @@ class Client(QThread):
 		if jid in self.subscribe: self.subscribe.remove(jid)
 		if jid in self.subscribed: self.subscribed.remove(jid)
 	
-	def unsubscribedReq(self, presence):
+	def handleUnsubscribedReq(self, presence):
 		# presence_unsubscribed - approvement of removing subscription
-		self.emit(SIGNAL("unsubscribedReq"), str(presence['from']))
+		self.emit(SIGNAL("handleUnsubscribedReq"), str(presence['from']))
 		if presence['from'] in self.subscribe: self.subscribe.remove(presence['from'])
 		if presence['from'] in self.subscribed: self.subscribed.remove(presence['from'])
 		self.emit(SIGNAL("presence(PyQt_PyObject)"), (presence['from'], "", self.getSubscription(presence['from'])))
 		
-	def unsubscribeReq(self, presence):
+	def handleUnsubscribeReq(self, presence):
 		# presence_unsubscribed - approvement of removing subscription
 		self.emit(SIGNAL("information"), "Subscription update", "User " + presence['from'] + 
 			" has unsubscribed from receiving your status notifications.")

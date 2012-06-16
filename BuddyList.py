@@ -26,7 +26,7 @@ class BuddyList(AbstractContactList):
 	
 	def constructList(self, rosterKeys):
 		# wait till all presences will come
-		time.sleep(3)
+		time.sleep(1)
 		
 		for jid in rosterKeys:
 			if self.connection:
