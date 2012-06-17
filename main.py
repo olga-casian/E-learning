@@ -12,13 +12,13 @@ import time
 import sys
 import re
 from PyQt4.QtGui import *
-from PyQt4.QtCore import SIGNAL, SLOT, QSettings, Qt
+from PyQt4.QtCore import SIGNAL, SLOT, QSettings, Qt, QUrl
 from PyQt4 import uic
 
 import interface.resource.res
 from BuddyList import BuddyList
 from im import Client
-from constants import SHOW, MUC_GROUP_TITLE, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC, PATH_UI_ADD_BUDDY, DEFAULT_GROUP
+from constants import SHOW, MUC_GROUP_TITLE, PATH_UI_MAIN, PATH_UI_CONNECTION, PATH_UI_LOGS, PATH_UI_ABOUT_PYTALK, PATH_UI_JOIN_MUC, PATH_UI_ADD_BUDDY, DEFAULT_GROUP, PATH_UI_HELP, PATH_DOC_HELP
 
 
 class MainWindow(QMainWindow):	
@@ -61,6 +61,8 @@ class MainWindow(QMainWindow):
 		self.connect(self.act_quit, SIGNAL("triggered()"), self.quitApp)
 		self.act_join_group_chat.setEnabled(False)
 		self.act_add_buddy.setEnabled(False)
+		self.act_help.triggered.connect(self.showHelp)
+		self.act_about_pystudy.triggered.connect(self.aboutPyStudy)
 		
 		# View
 		self.act_away_buddies.setEnabled(False)
@@ -76,6 +78,37 @@ class MainWindow(QMainWindow):
 		# About Dialogs
 		self.connect(self.act_about_pytalk, SIGNAL("triggered()"), self.aboutPyTalk)
 		self.connect(self.act_about_qt, SIGNAL("triggered()"), QApplication.instance(), SLOT("aboutQt()"))
+		
+	def showHelp(self):
+		# opens help dialog		
+		QDialog.__init__(self)
+		self.helpForm = uic.loadUi(PATH_UI_HELP)
+		self.helpForm.show()
+		
+		self.connect(self.helpForm.btn_back, SIGNAL('clicked()'), 
+			self.helpForm.tbr_help, SLOT("backward()"))
+		self.connect(self.helpForm.btn_home, SIGNAL('clicked()'), 
+			self.helpForm.tbr_help, SLOT("home()"))
+		self.connect(self.helpForm.tbr_help, SIGNAL("sourceChanged(QUrl)"), 
+			self.updatePageTitle)			
+		self.helpForm.tbr_help.setSource((QUrl.fromLocalFile(PATH_DOC_HELP))) # "../docs/help/index.html")))	
+
+	def updatePageTitle(self):
+		# used to update label for title (helpForm.lab_title) in help dialog
+		self.helpForm.lab_title.setText(self.helpForm.tbr_help.documentTitle())
+		
+	def aboutPyStudy(self):
+		# opens about dialog
+		QMessageBox.about(self, "About", 
+				"""<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
+				plugin for sharing your ideas and thoughts with others.</p>
+				
+				<p>It is an open source project; you can always find the latest
+				version of code at <a href="https://github.com/dae-eklen/E-learning">github</a>
+				page.</p> 
+				
+				<p>Current version: 1.0.0</p>
+				""")	
 		
 	def aboutPyTalk(self):
 		QDialog.__init__(self)
@@ -327,7 +360,7 @@ class MainWindow(QMainWindow):
 	
 if __name__ == "__main__":
 	# Setup logging
-	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-10s %(message)s')
+	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-10s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>726</width>
-    <height>456</height>
+    <width>810</width>
+    <height>492</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -68,7 +68,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="btn_multimedia">
          <property name="text">
-          <string>Multimedia</string>
+          <string>&amp;Multimedia</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -78,7 +78,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="btn_members">
          <property name="text">
-          <string>Chat members</string>
+          <string>&amp;Chat members</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -94,7 +94,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QCheckBox" name="chb_members">
        <property name="text">
-        <string>Chat members only</string>
+        <string>C&amp;hat members only</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -110,7 +110,7 @@ p, li { white-space: pre-wrap; }
         </size>
        </property>
        <property name="text">
-        <string>Update members</string>
+        <string>&amp;Update members</string>
        </property>
       </widget>
      </item>
@@ -122,67 +122,179 @@ p, li { white-space: pre-wrap; }
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QPushButton" name="btn_color">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Change pen color</string>
+         </property>
+         <property name="accessibleName">
+          <string>&amp;C</string>
+         </property>
          <property name="text">
-          <string>Color</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="resource/res.qrc">
            <normaloff>:/icons/icons/canvas/color.png</normaloff>:/icons/icons/canvas/color.png</iconset>
          </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_width">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Change pen width</string>
+         </property>
          <property name="text">
-          <string>Width</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="resource/res.qrc">
            <normaloff>:/icons/icons/canvas/width.png</normaloff>:/icons/icons/canvas/width.png</iconset>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btn_save">
-         <property name="text">
-          <string>Save</string>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
-         <property name="icon">
-          <iconset resource="resource/res.qrc">
-           <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_add">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Add current image to session</string>
+         </property>
          <property name="text">
-          <string>Add</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="resource/res.qrc">
            <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
          </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_undo">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Undo latest stroke</string>
+         </property>
          <property name="text">
-          <string>Undo</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="resource/res.qrc">
            <normaloff>:/icons/icons/canvas/undo.png</normaloff>:/icons/icons/canvas/undo.png</iconset>
          </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_clear">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Clear the canvas</string>
+         </property>
          <property name="text">
-          <string>Clear</string>
+          <string/>
          </property>
          <property name="icon">
           <iconset resource="resource/res.qrc">
            <normaloff>:/icons/icons/canvas/clear.png</normaloff>:/icons/icons/canvas/clear.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -192,23 +304,11 @@ p, li { white-space: pre-wrap; }
       <layout class="QHBoxLayout" name="hlt_audio_save">
        <item>
         <widget class="QPushButton" name="btn_canvas_session">
-         <property name="minimumSize">
-          <size>
-           <width>160</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>160</width>
-           <height>16777215</height>
-          </size>
-         </property>
          <property name="toolTip">
           <string>Turn on/off canvas session</string>
          </property>
          <property name="text">
-          <string>Canvas session OFF</string>
+          <string>C&amp;anvas session</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -228,24 +328,58 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btn_audio_session">
+        <widget class="QPushButton" name="btn_save">
          <property name="minimumSize">
           <size>
-           <width>160</width>
-           <height>0</height>
+           <width>0</width>
+           <height>32</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>160</width>
-           <height>16777215</height>
+           <width>16777215</width>
+           <height>32</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>50</weight>
+           <italic>false</italic>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ActionsContextMenu</enum>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Save session data</string>
+         </property>
+         <property name="text">
+          <string>&amp;Save</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource/res.qrc">
+           <normaloff>:/icons/icons/canvas/add.png</normaloff>:/icons/icons/canvas/add.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_audio_session">
          <property name="toolTip">
           <string>Turn on/off audio session</string>
          </property>
          <property name="text">
-          <string>Audio session OFF</string>
+          <string>Au&amp;dio session</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -295,11 +429,7 @@ p, li { white-space: pre-wrap; }
   </layout>
   <zorder></zorder>
   <zorder></zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>buttonBox</zorder>
   <zorder></zorder>
-  <zorder>btn_width</zorder>
-  <zorder>btn_clear</zorder>
  </widget>
  <resources>
   <include location="resource/res.qrc"/>

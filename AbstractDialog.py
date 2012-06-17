@@ -1,11 +1,13 @@
-from PyQt4.QtGui import QWidget, QTextEdit
-from PyQt4.QtCore import SIGNAL, QSize, Qt
+from PyQt4.QtGui import QWidget, QTextEdit, QPushButton, QMenu, QImageWriter, QAction, QFileDialog
+from PyQt4.QtCore import SIGNAL, QSize, Qt, QDir
 from PyQt4 import QtGui, QtCore
 from PyQt4 import uic
 import re
+import os
 
 from constants import PATH_UI_MESSAGE
 from ChatMembers import ChatMembers
+from Multimedia import Canvas
 
 
 class MessageTextEdit(QTextEdit):
@@ -73,24 +75,54 @@ class AbstractDialog(QWidget):
 			# never show chat members if it is a privite chat with muc member
 			self.btn_members.hide()
 
-		# multimedia	
-		from Multimedia import ScribbleArea
-		self.scribbleArea = ScribbleArea(self)
-		self.vlt_top.insertWidget(1, self.scribbleArea)
+		# multimedia
+		self.saveAsActs = []
+		self.canvas = Canvas(self)
+		self.vlt_top.insertWidget(1, self.canvas.scribbleArea)
 		self.showMultimedia(False)
-
-		#self.connect(self.tbr_browser, SIGNAL("anchorClicked(QUrl)"), self.openLink)
-		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembersLayout)		
-		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)
+		self.connect(self.btn_color, SIGNAL("clicked()"), self.canvas.penColor)
+		self.connect(self.btn_width, SIGNAL("clicked()"), self.canvas.penWidth)
+		self.connect(self.btn_add, SIGNAL("clicked()"), self.canvas.add)
+		self.connect(self.btn_undo, SIGNAL("clicked()"), self.canvas.undo)
+		self.connect(self.btn_clear, SIGNAL("clicked()"), self.canvas.scribbleArea.clearImage)
 		
+		menu_save = QMenu(self)
+		menu_save.addAction("&First Item")
+		menu_save.addAction("&Second Item")
+		menu_save.addAction("&Third Item")
+		menu_save.addAction("F&ourth Item")
+		self.btn_save.setMenu(menu_save)
+
+		newAction = menu_save.addAction("Save &image As...")
+		subMenu_image = QMenu("Popup Submenu", self)
+		for format in QtGui.QImageWriter.supportedImageFormats():
+			format = str(format)
+			text = "." + format.lower()
+			action = QtGui.QAction(text, self, triggered=self.saveFile)
+			action.setData(format)
+			self.saveAsActs.append(action)
+		for action in self.saveAsActs:
+			subMenu_image.addAction(action)
+		newAction.setMenu(subMenu_image)	
+        
+		self.connect(self.btn_members, SIGNAL("toggled(bool)"), self.showMembersLayout)		
+		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)		
 		self.connect(self.btn_multimedia, SIGNAL("toggled(bool)"), self.showMultimedia)
-
-	# multimedia related methods
-
+	
+	def saveFile(self):
+		# opens dialog to save file with selected file type
+		fileFormat = self.sender().data()
+		initialPath = QDir.currentPath() + '/untitled.' + fileFormat
+		fileName = QFileDialog.getSaveFileName(self, 
+			"Save As...", initialPath,
+			".%s Files (*.%s);;All Files (*)" % (fileFormat.lower(), fileFormat))
+		if fileName:
+			return self.canvas.scribbleArea.saveImage(fileName, fileFormat)
+		return False
+	
 	def showMultimedia(self, checked):
 		if checked:
-			self.scribbleArea.show()
-			
+			self.canvas.scribbleArea.show()
 			self.btn_color.show()
 			self.btn_width.show()
 			self.btn_save.show()
@@ -101,8 +133,7 @@ class AbstractDialog(QWidget):
 			self.btn_audio_session.show()
 			self.btn_mute.show()
 		else:
-			self.scribbleArea.hide()
-			
+			self.canvas.scribbleArea.hide()
 			self.btn_color.hide()
 			self.btn_width.hide()
 			self.btn_save.hide()
@@ -112,11 +143,6 @@ class AbstractDialog(QWidget):
 			self.btn_canvas_session.hide()
 			self.btn_audio_session.hide()
 			self.btn_mute.hide()
-			
-			#self.vsr_sessions.hide()
-			#self.spacerItem2.hide()
-
-	# =====
 
 	def dialogTitle(self):
 		if len(self.jidTo) is 1:
@@ -206,6 +232,3 @@ class AbstractDialog(QWidget):
 			
 	def showMembersBuddies(self, checked):
 		self.chatMembers.showMembersBuddies(self.chb_members.isChecked())
-
-	#def openLink(self, url):
-	#	webbrowser.open(url.toString())

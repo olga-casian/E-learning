@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>298</width>
-    <height>401</height>
+    <width>256</width>
+    <height>396</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,7 +93,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>298</width>
+     <width>256</width>
      <height>26</height>
     </rect>
    </property>
@@ -120,8 +120,10 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="act_about_pystudy"/>
     <addaction name="act_about_pytalk"/>
     <addaction name="act_about_qt"/>
+    <addaction name="act_help"/>
    </widget>
    <widget class="QMenu" name="men_tools">
     <property name="title">
@@ -253,6 +255,19 @@
    </property>
    <property name="toolTip">
     <string>Join Group Chat</string>
+   </property>
+  </action>
+  <action name="act_help">
+   <property name="text">
+    <string>Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="act_about_pystudy">
+   <property name="text">
+    <string>About PyStudy</string>
    </property>
   </action>
  </widget>
