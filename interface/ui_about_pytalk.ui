@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>About PyTalk</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resource/res.qrc">
+    <normaloff>:/icons/icons/logotype.png</normaloff>:/icons/icons/logotype.png</iconset>
+  </property>
   <layout class="QVBoxLayout">
    <item>
     <layout class="QHBoxLayout">

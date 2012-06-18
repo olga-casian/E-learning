@@ -1,6 +1,8 @@
 from PyQt4.QtCore import QThread, SIGNAL
 import sleekxmpp
 from sleekxmpp.xmlstream import ET
+from sleekxmpp.xmlstream.handler.callback import Callback
+from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 import threading
 import re
 import hashlib
@@ -58,6 +60,9 @@ class Client(QThread):
 		self.xmpp.add_event_handler('presence_unsubscribe', self.handleUnsubscribeReq)
 		self.xmpp.add_event_handler('presence_unsubscribed', self.handleUnsubscribedReq)
 		self.xmpp.add_event_handler("changed_subscription", self.handleChangedSubscription)
+		self.xmpp.register_handler(Callback('Whiteboarding', 
+			MatchXPath('{%s}message/{%s}x/{%s}path' % (self.xmpp.default_ns, 'http://jabber.org/protocol/swb', 'http://jabber.org/protocol/swb')), 
+				self.rcvCanvasStroke))
 		
 		self.received = set()
 		self.presences_received = threading.Event()
@@ -72,6 +77,37 @@ class Client(QThread):
 			self.xmpp.process(block=True)
 		else:
 			self.emit(SIGNAL("debug"), "unable to connect\n\n")
+
+	def rcvCanvasStroke(self, data):
+		rcvFrom = data["from"].bare		
+		strokeData = data.xml.find('{%s}x/{%s}path' % ('http://jabber.org/protocol/swb', 'http://jabber.org/protocol/swb'))
+		d = strokeData.attrib['d']
+		stroke = strokeData.attrib['stroke']
+		stroke_width = strokeData.attrib['stroke-width']
+		
+		if data["type"] == "groupchat":
+			nick = data["nick"]
+			self.emit(SIGNAL("rcvCanvasStrokeMUC"), nick, rcvFrom, d, stroke, stroke_width)
+		elif data["type"] == "chat":
+			self.emit(SIGNAL("rcvCanvasStroke"), rcvFrom, d, stroke, stroke_width)
+
+	def sendCanvasStroke(self, msgType, jid, d, stroke, stroke_width):
+		"""
+		<message to='timon@shakespeare.lit/hall'>
+		  <x xmlns='http://jabber.org/protocol/swb'>
+			<path d='300 100 200 300 100 100' stroke='#ff0000' stroke-width='1''/>
+		  </x>
+		</message>
+		"""
+		if msgType == "groupchat":
+			jid = self.jidlistToRoom(jid)
+		nick = self.getJidNick(self.jabberID)
+		msg = self.xmpp.makeMessage(mto = jid, mtype = msgType, mnick = nick)
+		x = ET.Element('{http://jabber.org/protocol/swb}x')
+		msg.append(x)
+		path = ET.Element('{http://jabber.org/protocol/swb}path', {'d': d, 'stroke': stroke, 'stroke-width':stroke_width})
+		x.append(path)
+		self.xmpp.send(msg)
 
 	def handleFailedAuth(self, failure):
 		# failed_auth
@@ -186,17 +222,24 @@ class Client(QThread):
 		self.emit(SIGNAL("inviteMUC"), str(invite['groupchat_invite']['jid']), jidFrom[0])
 		
 	def declineMUCInvite(self, room, jid, reason='', mfrom=''):
-			msg = self.xmpp.makeMessage(room)
-			msg['from'] = mfrom
-			x = ET.Element('{http://jabber.org/protocol/muc#user}x')
-			decline = ET.Element('{http://jabber.org/protocol/muc#user}decline', {'to': jid})
-			if reason:
-				rxml = ET.Element('reason')
-				rxml.text = reason
-				decline.append(rxml)
-			x.append(decline)
-			msg.append(x)
-			self.xmpp.send(msg)
+		"""
+		<message to="qwertytest@conference.talkr.im">
+		<x xmlns="http://jabber.org/protocol/muc#user">
+		<decline to="dae-eklen@talkr.im" />
+		</x>
+		</message>
+		"""
+		msg = self.xmpp.makeMessage(room)
+		msg['from'] = mfrom
+		x = ET.Element('{http://jabber.org/protocol/muc#user}x')
+		decline = ET.Element('{http://jabber.org/protocol/muc#user}decline', {'to': jid})
+		if reason:
+			rxml = ET.Element('reason')
+			rxml.text = reason
+			decline.append(rxml)
+		x.append(decline)
+		msg.append(x)
+		self.xmpp.send(msg)
 		
 	def joinMUC(self, jidList):
 		room = self.jidlistToRoom(jidList)

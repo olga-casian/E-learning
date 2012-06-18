@@ -61,8 +61,6 @@ class MainWindow(QMainWindow):
 		self.connect(self.act_quit, SIGNAL("triggered()"), self.quitApp)
 		self.act_join_group_chat.setEnabled(False)
 		self.act_add_buddy.setEnabled(False)
-		self.act_help.triggered.connect(self.showHelp)
-		self.act_about_pystudy.triggered.connect(self.aboutPyStudy)
 		
 		# View
 		self.act_away_buddies.setEnabled(False)
@@ -77,7 +75,8 @@ class MainWindow(QMainWindow):
 		
 		# About Dialogs
 		self.connect(self.act_about_pytalk, SIGNAL("triggered()"), self.aboutPyTalk)
-		self.connect(self.act_about_qt, SIGNAL("triggered()"), QApplication.instance(), SLOT("aboutQt()"))
+		self.act_help.triggered.connect(self.showHelp)
+		self.act_about_pystudy.triggered.connect(self.aboutPyStudy)
 		
 	def showHelp(self):
 		# opens help dialog		
@@ -100,14 +99,16 @@ class MainWindow(QMainWindow):
 	def aboutPyStudy(self):
 		# opens about dialog
 		QMessageBox.about(self, "About", 
-				"""<p>The <b>e-learning</b> project is a <a href="http://pidgin.im/">Pidgin</a> 
-				plugin for sharing your ideas and thoughts with others.</p>
+				"""<p>The <b>PyStudy</b> is a tool for sharing your ideas and thoughts with others.
+				The features that distinguish it from other instant messengers are canvas and voice sessions with
+				further possibility of saving the data into various file formats.</p>
 				
 				<p>It is an open source project; you can always find the latest
 				version of code at <a href="https://github.com/dae-eklen/E-learning">github</a>
 				page.</p> 
 				
-				<p>Current version: 1.0.0</p>
+				<p>Current version: 0.9</p>
+				<p>Author: Casian Olga</p>
 				""")	
 		
 	def aboutPyTalk(self):
@@ -224,7 +225,7 @@ class MainWindow(QMainWindow):
 		
 		self.connectionDialog.eln_jid.setText(self.settings.value("jid", ""))
 		self.connectionDialog.eln_pass.setText(self.settings.value("password", ""))
-		self.connectionDialog.eln_resource.setText(self.settings.value("resource", ""))
+		self.connectionDialog.eln_resource.setText(self.settings.value("resource", "PyStudy"))
 
 	def closeEvent(self, event):
 		# called on close (Ctrl+Q)
@@ -295,6 +296,8 @@ class MainWindow(QMainWindow):
 		self.connect(self.im, SIGNAL("subscribeReq"), self.subscribeReq)
 		self.connect(self.im, SIGNAL("handleUnsubscribedReq"), self.handleUnsubscribedReq)
 		self.connect(self.im, SIGNAL("sendPresenceToBuddy"), self.statusUpdate)
+		self.connect(self.im, SIGNAL("rcvCanvasStroke"), self.BuddyList.rcvCanvasStroke)
+		self.connect(self.im, SIGNAL("rcvCanvasStrokeMUC"), self.BuddyList.rcvCanvasStrokeMUC)
 		
 		self.connect(self.im, SIGNAL("critical"), self.critical)
 		self.connect(self.im, SIGNAL("information"), self.information)
@@ -360,7 +363,7 @@ class MainWindow(QMainWindow):
 	
 if __name__ == "__main__":
 	# Setup logging
-	#logging.basicConfig(level=logging.DEBUG, format='%(levelname)-10s %(message)s')
+	logging.basicConfig(level=logging.DEBUG, format='%(levelname)-10s %(message)s')
 	
 	app = QApplication(sys.argv)
 	window = MainWindow()

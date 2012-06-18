@@ -23,3 +23,11 @@ class MessageDialog(AbstractDialog):
 		self.tbr_browser.append(message)
 		self.con.sendMessage(self.jidTo[0], text)
 		self.messageTextEdit.clear()
+		
+	def sendCanvasStroke(self, d, stroke, stroke_width):
+		self.con.sendCanvasStroke("chat", self.jidTo[0], d, stroke, stroke_width)
+		
+	def CanvasStroke(self, d, stroke, stroke_width):
+		self.showMultimedia(True)
+		#print "======private\n", d, stroke, stroke_width, "======\n"
+		self.canvas.scribbleArea.draw(d, stroke, stroke_width)

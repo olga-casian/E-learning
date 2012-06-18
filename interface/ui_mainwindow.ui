@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Buddy List</string>
+   <string>PyStudy</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource/res.qrc">
@@ -122,7 +122,6 @@
     </property>
     <addaction name="act_about_pystudy"/>
     <addaction name="act_about_pytalk"/>
-    <addaction name="act_about_qt"/>
     <addaction name="act_help"/>
    </widget>
    <widget class="QMenu" name="men_tools">
@@ -158,7 +157,10 @@
      <normaloff>:/icons/icons/log-out.png</normaloff>:/icons/icons/log-out.png</iconset>
    </property>
    <property name="text">
-    <string>Log out</string>
+    <string>Log o&amp;ut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
    </property>
   </action>
   <action name="act_offline_buddies">
@@ -186,16 +188,10 @@
      <normaloff>:/icons/icons/about.png</normaloff>:/icons/icons/about.png</iconset>
    </property>
    <property name="text">
-    <string>About pyTalk</string>
+    <string>About py&amp;Talk</string>
    </property>
-  </action>
-  <action name="act_about_qt">
-   <property name="icon">
-    <iconset>
-     <normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/qt4.png</normaloff>../../../../../../home/dae-eklen/project/PyTalk/pytalk/ui/images/qt4.png</iconset>
-   </property>
-   <property name="text">
-    <string>About Qt</string>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
   <action name="act_quit">
@@ -216,16 +212,13 @@
      <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
    </property>
    <property name="text">
+    <string>Add &amp;Buddy</string>
+   </property>
+   <property name="toolTip">
     <string>Add Buddy</string>
    </property>
-  </action>
-  <action name="act_add_group">
-   <property name="icon">
-    <iconset resource="resource/res.qrc">
-     <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add a group</string>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
   <action name="act_preferences">
@@ -242,7 +235,10 @@
   </action>
   <action name="act_logs">
    <property name="text">
-    <string>Logs</string>
+    <string>&amp;Logs</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="act_join_group_chat">
@@ -251,10 +247,13 @@
      <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
    </property>
    <property name="text">
-    <string>Add/Join Group Chat</string>
+    <string>Add/Join &amp;Group Chat</string>
    </property>
    <property name="toolTip">
-    <string>Join Group Chat</string>
+    <string>Add or Join Group Chat</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
   <action name="act_help">
@@ -266,8 +265,15 @@
    </property>
   </action>
   <action name="act_about_pystudy">
+   <property name="icon">
+    <iconset resource="resource/res.qrc">
+     <normaloff>:/icons/icons/logotype.png</normaloff>:/icons/icons/logotype.png</iconset>
+   </property>
    <property name="text">
-    <string>About PyStudy</string>
+    <string>About P&amp;yStudy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

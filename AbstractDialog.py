@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QWidget, QTextEdit, QPushButton, QMenu, QImageWriter, QAction, QFileDialog
+from PyQt4.QtGui import QWidget, QTextEdit, QPushButton, QMenu, QImageWriter, QAction, QFileDialog, QMessageBox
 from PyQt4.QtCore import SIGNAL, QSize, Qt, QDir
 from PyQt4 import QtGui, QtCore
 from PyQt4 import uic
@@ -76,7 +76,9 @@ class AbstractDialog(QWidget):
 			self.btn_members.hide()
 
 		# multimedia
-		self.saveAsActs = []
+		self.saveAsImgActs = []
+		self.saveAsAudioActs = []
+		self.saveAsVideoActs = []
 		self.canvas = Canvas(self)
 		self.vlt_top.insertWidget(1, self.canvas.scribbleArea)
 		self.showMultimedia(False)
@@ -85,23 +87,42 @@ class AbstractDialog(QWidget):
 		self.connect(self.btn_add, SIGNAL("clicked()"), self.canvas.add)
 		self.connect(self.btn_undo, SIGNAL("clicked()"), self.canvas.undo)
 		self.connect(self.btn_clear, SIGNAL("clicked()"), self.canvas.scribbleArea.clearImage)
-		
+		# save button
 		menu_save = QMenu(self)
-		menu_save.addAction("&First Item")
-		menu_save.addAction("&Second Item")
-		menu_save.addAction("&Third Item")
-		menu_save.addAction("F&ourth Item")
+		newAction = menu_save.addAction("Save &audio As...")
+		subMenu_audio = QMenu("Popup Submenu audio", self)
+		for format in ['mp3']:
+			format = str(format)
+			text = "." + format.lower()
+			action = QtGui.QAction(text, self, triggered=self.saveAudioFile)
+			action.setData(format)
+			self.saveAsAudioActs.append(action)
+		for action in self.saveAsAudioActs:
+			subMenu_audio.addAction(action)
+		newAction.setMenu(subMenu_audio)	
+			
+		newAction = menu_save.addAction("Save &video As...")
 		self.btn_save.setMenu(menu_save)
+		subMenu_video = QMenu("Popup Submenu video", self)
+		for format in ['avi']:
+			format = str(format)
+			text = "." + format.lower()
+			action = QtGui.QAction(text, self, triggered=self.saveVideoFile)
+			action.setData(format)
+			self.saveAsVideoActs.append(action)
+		for action in self.saveAsVideoActs:
+			subMenu_video.addAction(action)
+		newAction.setMenu(subMenu_video)
 
 		newAction = menu_save.addAction("Save &image As...")
-		subMenu_image = QMenu("Popup Submenu", self)
+		subMenu_image = QMenu("Popup Submenu image", self)
 		for format in QtGui.QImageWriter.supportedImageFormats():
 			format = str(format)
 			text = "." + format.lower()
-			action = QtGui.QAction(text, self, triggered=self.saveFile)
+			action = QtGui.QAction(text, self, triggered=self.saveImgFile)
 			action.setData(format)
-			self.saveAsActs.append(action)
-		for action in self.saveAsActs:
+			self.saveAsImgActs.append(action)
+		for action in self.saveAsImgActs:
 			subMenu_image.addAction(action)
 		newAction.setMenu(subMenu_image)	
         
@@ -109,7 +130,13 @@ class AbstractDialog(QWidget):
 		self.connect(self.chb_members, SIGNAL("toggled(bool)"), self.showMembersBuddies)		
 		self.connect(self.btn_multimedia, SIGNAL("toggled(bool)"), self.showMultimedia)
 	
-	def saveFile(self):
+	def saveAudioFile(self):
+		QMessageBox.critical(self, "Error occured", "Cannot save .mp3 file; codec not found.", QMessageBox.Ok)
+		
+	def saveVideoFile(self):
+		QMessageBox.critical(self, "Error occured", "Cannot save .avi file; codec not found.", QMessageBox.Ok)
+	
+	def saveImgFile(self):
 		# opens dialog to save file with selected file type
 		fileFormat = self.sender().data()
 		initialPath = QDir.currentPath() + '/untitled.' + fileFormat

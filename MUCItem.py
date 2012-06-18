@@ -37,4 +37,8 @@ class MUCItem(AbstractListItem):
 	def receiveMessage(self, nick, msg):
 		self.createMsgDialog()
 		self.MUCDialog.receiveMessage(nick, msg)
+		
+	def rcvCanvasStroke(self, nick, d, stroke, stroke_width):
+		self.createMsgDialog()
+		self.MUCDialog.CanvasStroke(nick, d, stroke, stroke_width)
 

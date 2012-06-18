@@ -50,6 +50,10 @@ class BuddyItem(AbstractListItem):
 		self.createMsgDialog()
 		self.messageDialog.receiveMessage(msg)
 		
+	def rcvCanvasStroke(self, d, stroke, stroke_width):
+		self.createMsgDialog()
+		self.messageDialog.CanvasStroke(d, stroke, stroke_width)
+		
 	def isAway(self):
 		return (self.show == "away" or self.status == "xa")
 	

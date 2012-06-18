@@ -67,6 +67,9 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <widget class="QPushButton" name="btn_multimedia">
+         <property name="toolTip">
+          <string>Show multimedia area  Alt+M</string>
+         </property>
          <property name="text">
           <string>&amp;Multimedia</string>
          </property>
@@ -77,6 +80,9 @@ p, li { white-space: pre-wrap; }
        </item>
        <item>
         <widget class="QPushButton" name="btn_members">
+         <property name="toolTip">
+          <string>Show chat members  Alt+C</string>
+         </property>
          <property name="text">
           <string>&amp;Chat members</string>
          </property>
@@ -93,6 +99,9 @@ p, li { white-space: pre-wrap; }
     <layout class="QVBoxLayout" name="vlt_members">
      <item>
       <widget class="QCheckBox" name="chb_members">
+       <property name="toolTip">
+        <string>Show/hide non chat members  Alt+H</string>
+       </property>
        <property name="text">
         <string>C&amp;hat members only</string>
        </property>
@@ -108,6 +117,9 @@ p, li { white-space: pre-wrap; }
          <width>150</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>Update the room members  Alt+U</string>
        </property>
        <property name="text">
         <string>&amp;Update members</string>
@@ -135,10 +147,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Change pen color</string>
-         </property>
-         <property name="accessibleName">
-          <string>&amp;C</string>
+          <string>Change pen color  Ctrl+C</string>
          </property>
          <property name="text">
           <string/>
@@ -152,6 +161,9 @@ p, li { white-space: pre-wrap; }
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+C</string>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -173,7 +185,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Change pen width</string>
+          <string>Change pen width  Ctrl+W</string>
          </property>
          <property name="text">
           <string/>
@@ -187,6 +199,9 @@ p, li { white-space: pre-wrap; }
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+W</string>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -208,7 +223,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Add current image to session</string>
+          <string>Add current image to session  Ctrl+A</string>
          </property>
          <property name="text">
           <string/>
@@ -222,6 +237,9 @@ p, li { white-space: pre-wrap; }
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+A</string>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -243,7 +261,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Undo latest stroke</string>
+          <string>Undo latest stroke  Ctrl+Z</string>
          </property>
          <property name="text">
           <string/>
@@ -257,6 +275,9 @@ p, li { white-space: pre-wrap; }
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+Z</string>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -278,7 +299,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Clear the canvas</string>
+          <string>Clear the canvas  Shift+X</string>
          </property>
          <property name="text">
           <string/>
@@ -293,6 +314,9 @@ p, li { white-space: pre-wrap; }
            <height>32</height>
           </size>
          </property>
+         <property name="shortcut">
+          <string>Shift+X</string>
+         </property>
          <property name="flat">
           <bool>true</bool>
          </property>
@@ -305,7 +329,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="btn_canvas_session">
          <property name="toolTip">
-          <string>Turn on/off canvas session</string>
+          <string>Turn on/off canvas session  Alt+A</string>
          </property>
          <property name="text">
           <string>C&amp;anvas session</string>
@@ -356,7 +380,7 @@ p, li { white-space: pre-wrap; }
           <bool>false</bool>
          </property>
          <property name="toolTip">
-          <string>Save session data</string>
+          <string>Save session data  Alt+S</string>
          </property>
          <property name="text">
           <string>&amp;Save</string>
@@ -376,7 +400,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPushButton" name="btn_audio_session">
          <property name="toolTip">
-          <string>Turn on/off audio session</string>
+          <string>Turn on/off audio session  Alt+D</string>
          </property>
          <property name="text">
           <string>Au&amp;dio session</string>
@@ -395,7 +419,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="toolTip">
-          <string>Mute   Shift+M</string>
+          <string>Mute  Shift+M</string>
          </property>
          <property name="text">
           <string/>

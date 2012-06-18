@@ -42,7 +42,6 @@ class BuddyList(AbstractContactList):
 		
 	def remove(self):
 		if type(self.currentItem) is MUCItem:
-			print self.currentItem.jid
 			reply = QMessageBox.question(self, "Remove Group Chat", "Are you sure to leave group chat " + 
 					self.connection.jidlistToRoom(self.currentItem.jid) + 
 					"? All private messages through this chat will be closed as well.", 
@@ -274,6 +273,22 @@ class BuddyList(AbstractContactList):
 
 		self.newMUCItem(jidsFromOneMUC)
 		self.muc[str(jidsFromOneMUC)].receiveMessage(nick, msg)
+
+	def rcvCanvasStrokeMUC(self, nick, rcvFrom, d, stroke, stroke_width):
+		pattern = """([\w\-\|][\w\-\.\|]*)+@[\w\-][\w\-\.]+[a-zA-Z]{1,4}"""
+		jidsFromOneMUC = re.findall(pattern, str(rcvFrom))
+		
+		# set list of members
+		jidsFromOneMUC = jidsFromOneMUC[0].split("|")
+		
+		# add server
+		for n in range(len(jidsFromOneMUC)): jidsFromOneMUC[n] = unicode(jidsFromOneMUC[n] + "@talkr.im")
+
+		self.newMUCItem(jidsFromOneMUC)
+		self.muc[str(jidsFromOneMUC)].rcvCanvasStroke(nick, d, stroke, stroke_width)
+		
+	def rcvCanvasStroke(self, rcvFrom, d, stroke, stroke_width):
+		self.buddies[rcvFrom].rcvCanvasStroke(d, stroke, stroke_width)
 
 	def context(self, pos):
 		item = self.itemAt(pos)
