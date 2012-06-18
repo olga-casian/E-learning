@@ -190,6 +190,9 @@
    <property name="text">
     <string>About py&amp;Talk</string>
    </property>
+   <property name="toolTip">
+    <string>About PyTalk</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
    </property>
