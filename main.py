@@ -225,7 +225,7 @@ class MainWindow(QMainWindow):
 		
 		self.connectionDialog.eln_jid.setText(self.settings.value("jid", ""))
 		self.connectionDialog.eln_pass.setText(self.settings.value("password", ""))
-		self.connectionDialog.eln_resource.setText(self.settings.value("resource", "PyStudy"))
+		self.connectionDialog.eln_resource.setText(self.settings.value("resource", ""))
 
 	def closeEvent(self, event):
 		# called on close (Ctrl+Q)
@@ -269,7 +269,10 @@ class MainWindow(QMainWindow):
 		# settings for jid and pass
 		self.settings.setValue("jid", self.connectionDialog.eln_jid.text())
 		self.settings.setValue("password", self.connectionDialog.eln_pass.text())
-		self.settings.setValue("resource", self.connectionDialog.eln_resource.text())
+		if str(self.connectionDialog.eln_resource.text()) == "":
+			resource = "PyStudy"
+		else: resource = str(self.connectionDialog.eln_resource.text())
+		self.settings.setValue("resource", resource)
 			
 		# latest status and show
 		self.clientJid = str(self.connectionDialog.eln_jid.text() + "@" + self.connectionDialog.cmb_server.currentText())
@@ -279,7 +282,7 @@ class MainWindow(QMainWindow):
 		self.settings.endGroup()
 			
 		# starting xmpp thread
-		self.im = Client(self.clientJid, str(self.connectionDialog.eln_resource.text()), self.connectionDialog.eln_pass.text(),
+		self.im = Client(self.clientJid, resource, self.connectionDialog.eln_pass.text(),
 			self.latestShow, self.latestStatus)
 		self.connect(self.im, SIGNAL("failedAuth"), self.failedAuth)
 		self.im.start()
